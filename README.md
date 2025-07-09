@@ -78,13 +78,28 @@ Welcome to the **HTML5 Advanced Tutorial & Project Week**! This is your all-in-o
 
 ---
 
-## 📸 Screenshots & Demos
-> _Add your own screenshots or demo GIFs here!_
+## 🚀 Live Demo Links
+> _Coming soon!_ Add your deployed project links here for instant access:
+
+- [Personal Finance Tracker](#)  
+- [Real-Time Chat App](#)  
+- [PWA Weather Dashboard](#)  
+- [Drag & Drop Kanban Board](#)  
+- [Responsive Image Gallery](#)  
+- [Custom Video Player](#)  
+- [WebRTC Video Call Demo](#)  
+
+---
+
+<details>
+<summary>📸 <b>Screenshots & Demos</b> (Click to expand)</summary>
 
 <p align="center">
   <img src="https://via.placeholder.com/400x200?text=Day+Tutorial" alt="Day Tutorial Screenshot" width="400" />
   <img src="https://via.placeholder.com/400x200?text=Project+Week" alt="Project Week Screenshot" width="400" />
 </p>
+
+</details>
 
 ---
 
@@ -92,7 +107,7 @@ Welcome to the **HTML5 Advanced Tutorial & Project Week**! This is your all-in-o
 
 ```bash
 # 1. Clone this repository
-$ git clone https://github.com/your-username/Learn-HTML-5-Full-Tutorial.git
+$ git clone https://github.com/syed-mjtaba-stack/Learn-HTML-5-Full-Tutorial.git
 
 # 2. Open any index.html in your browser
 $ cd html\Tutorial\days\day01
@@ -105,11 +120,40 @@ Or just open the files directly in your favorite code editor and browser.
 
 ---
 
+## 👨‍💻 Author & Creator
+
+<p align="center">
+  <b>Course created by Syed Mujtaba Abbas</b><br>
+  <a href="https://github.com/syed-mujtaba-stack"><img src="https://avatars.githubusercontent.com/u/104489835?v=4" width="80" style="border-radius:50%" alt="Syed Mujtaba Abbas Avatar"></a><br>
+  <a href="https://github.com/syed-mujtaba-stack">@syed-mujtaba-stack</a>
+</p>
+
+---
+
 ## 📚 Resources & Credits
 - [MDN Web Docs](https://developer.mozilla.org/)
 - [HTML Living Standard](https://html.spec.whatwg.org/)
 - [Web.dev](https://web.dev/)
 - [SVG Banners](https://svgshare.com/)
+
+---
+
+<details>
+<summary>❓ <b>FAQ / Extra Info</b> (Click to expand)</summary>
+
+**Q: Will these projects work on GitHub Pages?**  
+A: Yes! All projects are client-side only and ready for GitHub Pages or Netlify.
+
+**Q: How can I contribute?**  
+A: Fork, star, and send a pull request! Suggestions and improvements are welcome.
+
+**Q: Where can I add my screenshots or demo GIFs?**  
+A: Inside the 'Screenshots & Demos' section above. Replace the placeholders with your own images.
+
+**Q: How do I deploy a project?**  
+A: Upload the project folder to GitHub Pages, Netlify, or Vercel for a live demo.
+
+</details>
 
 ---
 
