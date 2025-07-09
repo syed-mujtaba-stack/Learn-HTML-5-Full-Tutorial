@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 20: Progressive Web Apps (PWA) Essentials - Solution</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2196f3">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    code { background: #f8f9fa; padding: 2px 4px; border-radius: 3px; }
+    ul { margin-top: 8px; }
+    pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Progressive Web Apps (PWA) Essentials - Solution</h1>
+
+  <div class="container">
+    <h2>1. Web App Manifest</h2>
+    <div class="hint">A valid <code>manifest.json</code> is linked in the <code>&lt;head&gt;</code>:</div>
+    <pre><code>{
+  "name": "HTML5 PWA Demo",
+  "short_name": "HTML5PWA",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2196f3",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}</code></pre>
+    <ul>
+      <li>File: <code>manifest.json</code> (should be in the same directory)</li>
+      <li>Icons: <code>icon-192.png</code>, <code>icon-512.png</code> (add your own images or use placeholders)</li>
+    </ul>
+  </div>
+
+  <div class="container">
+    <h2>2. Service Worker Registration</h2>
+    <div class="hint">Registers a service worker and caches site assets for offline use.</div>
+    <button id="registerSW">Register Service Worker</button>
+    <div id="swStatus"></div>
+    <pre><code>// sw.js
+const CACHE_NAME = 'pwa-demo-cache-v1';
+const ASSETS = [
+  '/',
+  'index.html',
+  'manifest.json',
+  'icon-192.png',
+  'icon-512.png',
+  // Add CSS/JS files as needed
+];
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
+});
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => response || fetch(event.request))
+  );
+});
+</code></pre>
+  </div>
+
+  <div class="container">
+    <h2>3. Add to Home Screen</h2>
+    <div class="hint">With a valid manifest and service worker, browsers will prompt to install the app.</div>
+    <ul>
+      <li>Look for the install prompt or "Add to Home Screen" in your browser menu.</li>
+    </ul>
+  </div>
+
+  <div class="container">
+    <h2>4. Testing PWA Features</h2>
+    <ul>
+      <li>Test offline mode by disconnecting from the network.</li>
+      <li>Check the "Application" tab in DevTools for manifest and service worker status.</li>
+      <li>Try installing the app on your device.</li>
+    </ul>
+  </div>
+
+  <script>
+    // Service Worker Registration
+    document.getElementById('registerSW').onclick = function() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            document.getElementById('swStatus').textContent = 'Service Worker registered!';
+          })
+          .catch(err => {
+            document.getElementById('swStatus').textContent = 'Registration failed: ' + err;
+          });
+      } else {
+        document.getElementById('swStatus').textContent = 'Service Worker not supported.';
+      }
+    };
+  </script>
+</body>
+</html>

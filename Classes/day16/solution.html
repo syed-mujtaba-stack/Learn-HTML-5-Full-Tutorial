@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 16: IndexedDB & Client-Side Databases - Solution</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    input, textarea { width: 100%; padding: 8px; margin: 6px 0; border-radius: 4px; border: 1px solid #ccc; }
+    button { padding: 8px 15px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+    button:disabled { background: #cccccc; }
+    .note { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px; margin-bottom: 10px; }
+    .note-title { font-weight: bold; font-size: 1.1em; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    .status { color: #888; margin-bottom: 10px; }
+    .edit-area { margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>IndexedDB & Client-Side Databases - Solution</h1>
+
+  <div class="container">
+    <h2>1. Open/Create Database</h2>
+    <div class="status" id="dbStatus">Database not opened.</div>
+    <button id="openDB">Open Database</button>
+  </div>
+
+  <div class="container">
+    <h2>2. Add a Note</h2>
+    <form id="noteForm">
+      <input type="text" id="noteTitle" placeholder="Title" required>
+      <textarea id="noteContent" placeholder="Content" rows="3" required></textarea>
+      <button type="submit">Add Note</button>
+    </form>
+  </div>
+
+  <div class="container">
+    <h2>3. List Notes</h2>
+    <div id="notesList"></div>
+  </div>
+
+  <div class="container">
+    <h2>4. Update & Delete</h2>
+    <div class="hint">Each note can be edited or deleted using the buttons provided.</div>
+  </div>
+
+  <script>
+    let db = null;
+    const dbStatus = document.getElementById('dbStatus');
+    const openDBBtn = document.getElementById('openDB');
+    const noteForm = document.getElementById('noteForm');
+    const notesList = document.getElementById('notesList');
+
+    // Open Database
+    openDBBtn.onclick = function() {
+      const request = indexedDB.open('notesDB', 1);
+      request.onupgradeneeded = function(e) {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains('notes')) {
+          db.createObjectStore('notes', { keyPath: 'id', autoIncrement: true });
+        }
+      };
+      request.onsuccess = function(e) {
+        db = e.target.result;
+        dbStatus.textContent = 'Database opened successfully.';
+        listNotes();
+      };
+      request.onerror = function(e) {
+        dbStatus.textContent = 'Error opening database: ' + e.target.errorCode;
+      };
+    };
+
+    // Add Note
+    noteForm.onsubmit = function(e) {
+      e.preventDefault();
+      if (!db) {
+        dbStatus.textContent = 'Open the database first!';
+        return;
+      }
+      const title = document.getElementById('noteTitle').value.trim();
+      const content = document.getElementById('noteContent').value.trim();
+      if (!title || !content) return;
+      const tx = db.transaction(['notes'], 'readwrite');
+      const store = tx.objectStore('notes');
+      store.add({ title, content });
+      tx.oncomplete = function() {
+        noteForm.reset();
+        listNotes();
+      };
+    };
+
+    // List Notes
+    function listNotes() {
+      notesList.innerHTML = '';
+      if (!db) return;
+      const tx = db.transaction(['notes'], 'readonly');
+      const store = tx.objectStore('notes');
+      const request = store.openCursor();
+      request.onsuccess = function(e) {
+        const cursor = e.target.result;
+        if (cursor) {
+          const note = cursor.value;
+          const div = document.createElement('div');
+          div.className = 'note';
+          div.innerHTML = `
+            <div class="note-title">${note.title}</div>
+            <div class="note-content">${note.content}</div>
+            <button class="editBtn">Edit</button>
+            <button class="deleteBtn">Delete</button>
+          `;
+          // Edit
+          div.querySelector('.editBtn').onclick = function() {
+            showEditArea(div, note);
+          };
+          // Delete
+          div.querySelector('.deleteBtn').onclick = function() {
+            deleteNote(note.id);
+          };
+          notesList.appendChild(div);
+          cursor.continue();
+        } else if (!notesList.hasChildNodes()) {
+          notesList.innerHTML = '<em>No notes found.</em>';
+        }
+      };
+    }
+
+    // Delete Note
+    function deleteNote(id) {
+      if (!db) return;
+      const tx = db.transaction(['notes'], 'readwrite');
+      const store = tx.objectStore('notes');
+      store.delete(id);
+      tx.oncomplete = listNotes;
+    }
+
+    // Edit Note
+    function showEditArea(div, note) {
+      div.innerHTML = `
+        <input class="editTitle" value="${note.title}"><br>
+        <textarea class="editContent" rows="3">${note.content}</textarea><br>
+        <button class="saveBtn">Save</button>
+        <button class="cancelBtn">Cancel</button>
+      `;
+      div.querySelector('.saveBtn').onclick = function() {
+        const newTitle = div.querySelector('.editTitle').value.trim();
+        const newContent = div.querySelector('.editContent').value.trim();
+        if (!newTitle || !newContent) return;
+        updateNote(note.id, newTitle, newContent);
+      };
+      div.querySelector('.cancelBtn').onclick = listNotes;
+    }
+
+    // Update Note
+    function updateNote(id, title, content) {
+      if (!db) return;
+      const tx = db.transaction(['notes'], 'readwrite');
+      const store = tx.objectStore('notes');
+      store.put({ id, title, content });
+      tx.oncomplete = listNotes;
+    }
+  </script>
+</body>
+</html>

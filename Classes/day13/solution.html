@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 13: WebRTC & Media Capture - Solution</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    button { padding: 10px 15px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    button:disabled { background: #cccccc; }
+    video, canvas { max-width: 100%; border-radius: 4px; margin-bottom: 10px; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    .preview { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 4px; }
+    img.snapshot { max-width: 320px; border-radius: 4px; margin-top: 10px; }
+    .status { color: #888; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>WebRTC & Media Capture - Solution</h1>
+
+  <div class="container">
+    <h2>1. Accessing the Webcam</h2>
+    <div class="preview">
+      <video id="webcam" autoplay playsinline></video><br>
+      <button id="startWebcam">Start Webcam</button>
+      <button id="stopWebcam">Stop Webcam</button>
+      <div class="status" id="webcamStatus"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>2. Take a Snapshot</h2>
+    <div class="preview">
+      <button id="snapshot">Take Snapshot</button>
+      <canvas id="snapshotCanvas" width="320" height="240" style="display:none;"></canvas>
+      <div id="snapshotResult"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>3. Basic Peer Connection (Loopback)</h2>
+    <div class="preview">
+      <video id="localVideo" autoplay playsinline></video>
+      <video id="remoteVideo" autoplay playsinline></video><br>
+      <button id="startPeer">Start Loopback</button>
+      <button id="stopPeer">Stop</button>
+      <div class="status" id="peerStatus"></div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Webcam Access
+    let webcamStream = null;
+    const webcamVideo = document.getElementById('webcam');
+    const webcamStatus = document.getElementById('webcamStatus');
+    document.getElementById('startWebcam').onclick = async () => {
+      try {
+        webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        webcamVideo.srcObject = webcamStream;
+        webcamStatus.textContent = 'Webcam started.';
+      } catch (e) {
+        webcamStatus.textContent = 'Error: ' + e.message;
+      }
+    };
+    document.getElementById('stopWebcam').onclick = () => {
+      if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        webcamVideo.srcObject = null;
+        webcamStatus.textContent = 'Webcam stopped.';
+      }
+    };
+
+    // 2. Take Snapshot
+    document.getElementById('snapshot').onclick = () => {
+      if (!webcamStream) {
+        document.getElementById('snapshotResult').innerHTML = '<span style="color:red;">Webcam not started!</span>';
+        return;
+      }
+      const canvas = document.getElementById('snapshotCanvas');
+      const video = webcamVideo;
+      canvas.width = video.videoWidth || 320;
+      canvas.height = video.videoHeight || 240;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL('image/png');
+      document.getElementById('snapshotResult').innerHTML = `<img src="${dataURL}" class="snapshot">`;
+    };
+
+    // 3. WebRTC Loopback
+    let localStream = null;
+    let localPC = null;
+    let remotePC = null;
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const peerStatus = document.getElementById('peerStatus');
+
+    document.getElementById('startPeer').onclick = async () => {
+      peerStatus.textContent = '';
+      // Get webcam stream
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        localVideo.srcObject = localStream;
+      } catch (e) {
+        peerStatus.textContent = 'Error: ' + e.message;
+        return;
+      }
+      // Create peer connections
+      localPC = new RTCPeerConnection();
+      remotePC = new RTCPeerConnection();
+      // ICE candidate exchange
+      localPC.onicecandidate = e => {
+        if (e.candidate) remotePC.addIceCandidate(e.candidate);
+      };
+      remotePC.onicecandidate = e => {
+        if (e.candidate) localPC.addIceCandidate(e.candidate);
+      };
+      // Stream to remote
+      remotePC.ontrack = e => {
+        remoteVideo.srcObject = e.streams[0];
+      };
+      // Add tracks
+      localStream.getTracks().forEach(track => localPC.addTrack(track, localStream));
+      // Offer/answer
+      const offer = await localPC.createOffer();
+      await localPC.setLocalDescription(offer);
+      await remotePC.setRemoteDescription(offer);
+      const answer = await remotePC.createAnswer();
+      await remotePC.setLocalDescription(answer);
+      await localPC.setRemoteDescription(answer);
+      peerStatus.textContent = 'Loopback peer connection established.';
+    };
+    document.getElementById('stopPeer').onclick = () => {
+      [localPC, remotePC].forEach(pc => pc && pc.close());
+      [localVideo, remoteVideo].forEach(v => v.srcObject = null);
+      if (localStream) localStream.getTracks().forEach(track => track.stop());
+      peerStatus.textContent = 'Peer connection stopped.';
+    };
+  </script>
+</body>
+</html>

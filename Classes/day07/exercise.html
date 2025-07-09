@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Graphics - Exercise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .svg-container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        svg {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #eee;
+            background-color: #f9f9f9;
+        }
+        .controls {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SVG Graphics</h1>
+        
+        <div class="controls">
+            <h3>Shapes</h3>
+            <button id="addRect">Add Rectangle</button>
+            <button id="addCircle">Add Circle</button>
+            <button id="addLine">Add Line</button>
+            <button id="clearAll">Clear All</button>
+        </div>
+        
+        <div class="svg-container">
+            <svg id="svgCanvas">
+                <!-- SVG elements will be added here -->
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        // Your JavaScript code will go here
+    </script>
+</body>
+</html>

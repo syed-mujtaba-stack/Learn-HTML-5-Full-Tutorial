@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 11: Service Workers - Solution</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+        .container { background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        #status { margin: 15px 0; padding: 10px; border-radius: 4px; }
+        .online { background-color: #dff0d8; color: #3c763d; }
+        .offline { background-color: #f2dede; color: #a94442; }
+        .cached { background-color: #d9edf7; color: #31708f; }
+        pre { background-color: #f8f8f8; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .cached-files { margin-top: 15px; }
+        .cached-file { padding: 8px; margin: 5px 0; background-color: white; border: 1px solid #ddd; border-radius: 4px; }
+        .code-block { background-color: #f8f8f8; padding: 10px; border-left: 4px solid #4CAF50; margin: 10px 0; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Service Workers - Solution</h1>
+    
+    <!-- Service Worker Registration -->
+    <div class="container">
+        <h2>1. Service Worker Registration</h2>
+        <button id="registerBtn">Register Service Worker</button>
+        <button id="unregisterBtn" disabled>Unregister Service Worker</button>
+        <div id="registrationStatus">Service Worker: Not registered</div>
+        
+        <h3>Service Worker Code (sw.js):</h3>
+        <div class="code-block">// Service Worker Lifecycle Event Listeners
+
+// Install event - cache static assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('v1').then((cache) => {
+      return cache.addAll([
+        '/',
+        'index.html',
+        'styles.css',
+        'app.js',
+        'offline.html'
+      ]);
+    })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  const cacheWhitelist = ['v1'];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// Fetch event - serve from cache, fallback to network
+self.addEventListener('fetch', (event) => {
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseToCache = response.clone();
+          caches.open('api-cache-v1').then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => response || fetch(event.request))
+        .catch(() => {
+          if (event.request.mode === 'navigate') {
+            return caches.match('offline.html');
+          }
+        })
+    );
+  }
+});</div>
+    </div>
+    
+    <!-- Cache Management -->
+    <div class="container">
+        <h2>2. Cache Management</h2>
+        <button id="cacheAssetsBtn" disabled>Cache Static Assets</button>
+        <button id="clearCacheBtn" disabled>Clear Cache</button>
+        <div id="cacheStatus">Cache status: Not available</div>
+        <div class="cached-files" id="cachedFiles"></div>
+    </div>
+    
+    <!-- Offline Mode -->
+    <div class="container">
+        <h2>3. Offline Mode</h2>
+        <div id="connectionStatus" class="online">Status: Online</div>
+        <button id="fetchDataBtn" disabled>Fetch Data</button>
+        <div id="dataResult">Data will appear here</div>
+    </div>
+    
+    <!-- Background Sync -->
+    <div class="container">
+        <h2>4. Background Sync</h2>
+        <button id="syncBtn" disabled>Sync Data</button>
+        <div id="syncStatus">Sync status: Not available</div>
+        <div id="syncResult"></div>
+    </div>
+    
+    <!-- Push Notifications -->
+    <div class="container">
+        <h2>5. Push Notifications</h2>
+        <button id="requestPermissionBtn">Request Notification Permission</button>
+        <button id="showNotificationBtn" disabled>Show Notification</button>
+        <div id="notificationStatus">Notification permission: Default</div>
+    </div>
+
+    <script>
+        // 1. Service Worker Registration
+        const registerBtn = document.getElementById('registerBtn');
+        const unregisterBtn = document.getElementById('unregisterBtn');
+        const registrationStatus = document.getElementById('registrationStatus');
+        
+        registerBtn.addEventListener('click', registerServiceWorker);
+        unregisterBtn.addEventListener('click', unregisterServiceWorker);
+        
+        async function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                registrationStatus.textContent = 'Service Worker: Not supported in this browser';
+                return;
+            }
+            
+            try {
+                const registration = await navigator.serviceWorker.register('sw.js');
+                registrationStatus.textContent = 'Service Worker: Registered successfully';
+                registerBtn.disabled = true;
+                unregisterBtn.disabled = false;
+                
+                // Enable other buttons
+                document.getElementById('cacheAssetsBtn').disabled = false;
+                document.getElementById('fetchDataBtn').disabled = false;
+                document.getElementById('syncBtn').disabled = false;
+                
+                // Listen for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    console.log('New service worker found');
+                    
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('New content available; please refresh.');
+                        }
+                    });
+                });
+                
+                return registration;
+            } catch (error) {
+                console.error('Service Worker registration failed:', error);
+                registrationStatus.textContent = `Service Worker: Registration failed - ${error.message}`;
+            }
+        }
+        
+        async function unregisterServiceWorker() {
+            if (!('serviceWorker' in navigator)) return;
+            
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map(r => r.unregister()));
+                
+                // Clear all caches
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                
+                registrationStatus.textContent = 'Service Worker: Unregistered';
+                registerBtn.disabled = false;
+                unregisterBtn.disabled = true;
+                
+                // Disable dependent buttons
+                document.getElementById('cacheAssetsBtn').disabled = true;
+                document.getElementById('clearCacheBtn').disabled = true;
+                document.getElementById('fetchDataBtn').disabled = true;
+                document.getElementById('syncBtn').disabled = true;
+                
+                window.location.reload();
+            } catch (error) {
+                console.error('Error unregistering service worker:', error);
+                registrationStatus.textContent = `Error unregistering: ${error.message}`;
+            }
+        }
+        
+        // 2. Cache Management
+        const cacheAssetsBtn = document.getElementById('cacheAssetsBtn');
+        const clearCacheBtn = document.getElementById('clearCacheBtn');
+        const cacheStatus = document.getElementById('cacheStatus');
+        const cachedFilesList = document.getElementById('cachedFiles');
+        
+        cacheAssetsBtn.addEventListener('click', cacheStaticAssets);
+        clearCacheBtn.addEventListener('click', clearCache);
+        
+        async function cacheStaticAssets() {
+            if (!('caches' in window)) {
+                cacheStatus.textContent = 'Cache API not supported';
+                return;
+            }
+            
+            try {
+                const cache = await caches.open('static-v1');
+                const assets = ['/', 'index.html', 'styles.css', 'app.js', 'offline.html'];
+                
+                cacheStatus.textContent = 'Caching assets...';
+                await cache.addAll(assets);
+                
+                const cachedFiles = await cache.keys();
+                updateCachedFilesList(cachedFiles.map(r => r.url));
+                
+                cacheStatus.textContent = `Cached ${cachedFiles.length} assets`;
+                clearCacheBtn.disabled = false;
+            } catch (error) {
+                console.error('Caching failed:', error);
+                cacheStatus.textContent = `Caching failed: ${error.message}`;
+            }
+        }
+        
+        async function clearCache() {
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                
+                cacheStatus.textContent = 'Cache cleared';
+                cachedFilesList.innerHTML = '';
+                clearCacheBtn.disabled = true;
+            } catch (error) {
+                console.error('Failed to clear cache:', error);
+                cacheStatus.textContent = `Failed to clear cache: ${error.message}`;
+            }
+        }
+        
+        function updateCachedFilesList(files) {
+            cachedFilesList.innerHTML = '';
+            files.forEach(file => {
+                const fileEl = document.createElement('div');
+                fileEl.className = 'cached-file';
+                fileEl.textContent = file;
+                cachedFilesList.appendChild(fileEl);
+            });
+        }
+        
+        // 3. Offline Mode
+        const connectionStatus = document.getElementById('connectionStatus');
+        const fetchDataBtn = document.getElementById('fetchDataBtn');
+        const dataResult = document.getElementById('dataResult');
+        
+        fetchDataBtn.addEventListener('click', fetchData);
+        
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
+        
+        function updateConnectionStatus() {
+            if (navigator.onLine) {
+                connectionStatus.textContent = 'Status: Online';
+                connectionStatus.className = 'online';
+            } else {
+                connectionStatus.textContent = 'Status: Offline';
+                connectionStatus.className = 'offline';
+            }
+        }
+        
+        async function fetchData() {
+            const url = 'https://jsonplaceholder.typicode.com/todos/1';
+            
+            try {
+                // Try network first
+                if (navigator.onLine) {
+                    dataResult.textContent = 'Fetching from network...';
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    // Cache the response
+                    const cache = await caches.open('api-cache-v1');
+                    await cache.put(url, new Response(JSON.stringify(data)));
+                    
+                    displayData(data, 'Network');
+                } else {
+                    // Try cache if offline
+                    const cache = await caches.open('api-cache-v1');
+                    const response = await cache.match(url);
+                    
+                    if (response) {
+                        const data = await response.json();
+                        displayData(data, 'Cache (offline)');
+                    } else {
+                        dataResult.textContent = 'No cached data available. Please go online to fetch data.';
+                    }
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                dataResult.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        function displayData(data, source) {
+            dataResult.innerHTML = `
+                <div class="cached">
+                    <strong>${source}:</strong>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+        }
+        
+        // 4. Background Sync
+        const syncBtn = document.getElementById('syncBtn');
+        const syncStatus = document.getElementById('syncStatus');
+        
+        syncBtn.addEventListener('click', registerSync);
+        
+        async function registerSync() {
+            if (!('serviceWorker' in navigator) || !('SyncManager' in window)) {
+                syncStatus.textContent = 'Background Sync not supported';
+                return;
+            }
+            
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                await registration.sync.register('sync-data');
+                syncStatus.textContent = 'Sync registered. Will sync when online...';
+                syncResult.textContent = 'Data will be synced when you are back online.';
+            } catch (error) {
+                console.error('Sync registration failed:', error);
+                syncStatus.textContent = `Sync failed: ${error.message}`;
+            }
+        }
+        
+        // 5. Push Notifications
+        const requestPermissionBtn = document.getElementById('requestPermissionBtn');
+        const showNotificationBtn = document.getElementById('showNotificationBtn');
+        const notificationStatus = document.getElementById('notificationStatus');
+        
+        requestPermissionBtn.addEventListener('click', requestNotificationPermission);
+        showNotificationBtn.addEventListener('click', showNotification);
+        
+        if ('Notification' in window) {
+            updateNotificationStatus();
+            Notification.requestPermission().then(updateNotificationStatus);
+        } else {
+            notificationStatus.textContent = 'Notifications not supported';
+            requestPermissionBtn.disabled = true;
+        }
+        
+        function updateNotificationStatus() {
+            if (!('Notification' in window)) return;
+            
+            const permission = Notification.permission;
+            notificationStatus.textContent = `Notification permission: ${permission}`;
+            
+            if (permission === 'granted') {
+                requestPermissionBtn.disabled = true;
+                showNotificationBtn.disabled = false;
+            } else {
+                showNotificationBtn.disabled = true;
+            }
+        }
+        
+        function requestNotificationPermission() {
+            if (!('Notification' in window)) return;
+            
+            Notification.requestPermission().then(permission => {
+                updateNotificationStatus();
+                
+                if (permission === 'granted') {
+                    console.log('Notification permission granted');
+                }
+            });
+        }
+        
+        function showNotification() {
+            if (Notification.permission !== 'granted') {
+                notificationStatus.textContent = 'Please grant notification permission first';
+                return;
+            }
+            
+            const notification = new Notification('Hello from Service Worker!', {
+                body: 'This is a test notification.',
+                icon: 'https://via.placeholder.com/192',
+                badge: 'https://via.placeholder.com/96',
+                vibrate: [200, 100, 200]
+            });
+            
+            notification.onclick = () => {
+                console.log('Notification clicked');
+                window.focus();
+                notification.close();
+            };
+        }
+        
+        // Initialize
+        if ('serviceWorker' in navigator) {
+            registerBtn.disabled = false;
+            
+            // Check if already registered
+            navigator.serviceWorker.getRegistration().then(registration => {
+                if (registration) {
+                    registrationStatus.textContent = 'Service Worker: Already registered';
+                    registerBtn.disabled = true;
+                    unregisterBtn.disabled = false;
+                    
+                    // Enable dependent buttons
+                    document.getElementById('cacheAssetsBtn').disabled = false;
+                    document.getElementById('fetchDataBtn').disabled = false;
+                    document.getElementById('syncBtn').disabled = false;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

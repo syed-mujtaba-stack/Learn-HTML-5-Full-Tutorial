@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocation API - Exercise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        #map {
+            height: 300px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .coordinates {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        .error {
+            color: #d32f2f;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 4px;
+            border-left: 4px solid #f44336;
+        }
+        .success {
+            color: #388e3c;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            border-left: 4px solid #4caf50;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Geolocation API Exercise</h1>
+        
+        <div class="section">
+            <h2>1. Get Current Position</h2>
+            <p>Click the button below to get your current position.</p>
+            <button id="getPosition">Get My Location</button>
+            <div id="positionResult"></div>
+            <div id="map"></div>
+        </div>
+        
+        <div class="section">
+            <h2>2. Watch Position</h2>
+            <p>Click the button below to start watching your position. This will update as you move.</p>
+            <div>
+                <button id="watchPosition">Start Watching Position</button>
+                <button id="clearWatch" disabled>Stop Watching</button>
+            </div>
+            <div id="watchResult"></div>
+            <div id="watchMap"></div>
+        </div>
+        
+        <div class="section">
+            <h2>3. Position Options</h2>
+            <p>Customize the position options for more control over geolocation accuracy and timeouts.</p>
+            
+            <div class="form-group">
+                <label for="enableHighAccuracy">
+                    <input type="checkbox" id="enableHighAccuracy">
+                    Enable High Accuracy (uses more battery)
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label for="timeout">Timeout (milliseconds):</label>
+                <input type="number" id="timeout" value="10000" min="0" step="1000">
+            </div>
+            
+            <div class="form-group">
+                <label for="maximumAge">Maximum Age (milliseconds):</label>
+                <input type="number" id="maximumAge" value="0" min="0" step="1000">
+                <small>0 = get fresh position, Infinity = accept any cached position</small>
+            </div>
+            
+            <button id="getPositionWithOptions">Get Position with Options</button>
+            <div id="optionsResult"></div>
+        </div>
+        
+        <div class="section">
+            <h2>4. Distance Calculator</h2>
+            <p>Calculate the distance between two points using the Haversine formula.</p>
+            
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <h3>Point A</h3>
+                    <div class="form-group">
+                        <label for="lat1">Latitude:</label>
+                        <input type="number" id="lat1" step="0.000001" placeholder="e.g., 40.7128">
+                    </div>
+                    <div class="form-group">
+                        <label for="lng1">Longitude:</label>
+                        <input type="number" id="lng1" step="0.000001" placeholder="e.g., -74.0060">
+                    </div>
+                    <button id="useCurrentPosA">Use My Location</button>
+                </div>
+                
+                <div style="flex: 1; min-width: 250px;">
+                    <h3>Point B</h3>
+                    <div class="form-group">
+                        <label for="lat2">Latitude:</label>
+                        <input type="number" id="lat2" step="0.000001" placeholder="e.g., 34.0522">
+                    </div>
+                    <div class="form-group">
+                        <label for="lng2">Longitude:</label>
+                        <input type="number" id="lng2" step="0.000001" placeholder="e.g., -118.2437">
+                    </div>
+                    <button id="useCurrentPosB">Use My Location</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button id="calculateDistance">Calculate Distance</button>
+                <div id="distanceResult" style="margin-top: 10px; font-size: 1.2em; font-weight: bold;"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>5. Geocoding (Bonus)</h2>
+            <p>Convert between addresses and geographic coordinates.</p>
+            
+            <div class="form-group">
+                <label for="address">Address:</label>
+                <input type="text" id="address" style="width: 100%;" placeholder="e.g., 1600 Amphitheatre Parkway, Mountain View, CA">
+            </div>
+            
+            <div>
+                <button id="geocode">Geocode Address</button>
+                <button id="reverseGeocode">Reverse Geocode</button>
+            </div>
+            
+            <div id="geocodeResult" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <!-- Load the Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+    
+    <script>
+        // Your JavaScript code will go here
+    </script>
+</body>
+</html>

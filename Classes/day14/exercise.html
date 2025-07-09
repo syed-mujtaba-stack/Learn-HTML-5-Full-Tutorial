@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 14: Drag & Drop API + File API - Exercise</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    .dropzone { border: 2px dashed #007bff; border-radius: 8px; padding: 40px; text-align: center; color: #007bff; background: #fff; margin-bottom: 10px; }
+    .dropzone.dragover { background: #e3f2fd; }
+    .file-list { margin-top: 10px; }
+    .draggable { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 10px; margin: 5px; cursor: grab; display: inline-block; }
+    .drag-container { display: flex; gap: 20px; }
+    .drag-box { flex: 1; min-height: 100px; border: 2px solid #ddd; border-radius: 8px; padding: 10px; background: #fafafa; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    img.preview { max-width: 120px; margin: 10px 0; border-radius: 4px; }
+    pre { background: #f8f9fa; padding: 8px; border-radius: 3px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Drag & Drop API + File API - Exercise</h1>
+
+  <div class="container">
+    <h2>1. Drag & Drop File Upload</h2>
+    <p>Implement a drag-and-drop area to upload files. Display the file name, size, and type. If the file is an image, show a preview. If it's a text file, show the first few lines.</p>
+    <div class="hint">Hint: Use <code>dragover</code>, <code>drop</code> events, and <code>FileReader</code> API.</div>
+    <div class="dropzone" id="dropzone">Drop files here or click to select</div>
+    <input type="file" id="fileInput" multiple style="display:none;">
+    <div class="file-list" id="fileList"></div>
+  </div>
+
+  <div class="container">
+    <h2>2. Drag Elements Between Containers</h2>
+    <p>Make the colored boxes draggable between two containers. Provide visual feedback during drag-and-drop.</p>
+    <div class="hint">Hint: Use <code>draggable=true</code> and handle <code>dragstart</code>, <code>dragover</code>, <code>drop</code> events.</div>
+    <div class="drag-container">
+      <div class="drag-box" id="boxA">
+        <div class="draggable" draggable="true" id="item1">Item 1</div>
+        <div class="draggable" draggable="true" id="item2">Item 2</div>
+      </div>
+      <div class="drag-box" id="boxB">
+        <div class="draggable" draggable="true" id="item3">Item 3</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // TODO: Implement drag-and-drop file upload and draggable elements logic here.
+  </script>
+</body>
+</html>

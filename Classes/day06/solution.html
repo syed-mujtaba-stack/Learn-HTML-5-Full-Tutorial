@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Drawing - Solution</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        button, select, input {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover, select:hover {
+            background: #f0f0f0;
+        }
+        button:active {
+            background: #e0e0e0;
+        }
+        .color-picker {
+            width: 50px;
+            padding: 2px;
+            height: 30px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+        .slider-container span {
+            margin: 0 10px;
+            min-width: 30px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: crosshair;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+        }
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            display: none;
+        }
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 5px;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #ddd;
+            transition: transform 0.2s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        .color-swatch.active {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 2px #333;
+        }
+        .preset-colors {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Canvas Drawing</h1>
+        
+        <div class="controls">
+            <button id="clearBtn">Clear Canvas</button>
+            <select id="toolSelect">
+                <option value="pencil">Pencil</option>
+                <option value="rectangle">Rectangle</option>
+                <option value="circle">Circle</option>
+                <option value="line">Line</option>
+                <option value="text">Text</option>
+                <option value="eraser">Eraser</option>
+            </select>
+            
+            <div class="slider-container">
+                <span>Size:</span>
+                <input type="range" id="sizeSlider" min="1" max="50" value="5">
+                <span id="sizeValue">5</span>
+            </div>
+            
+            <div class="preset-colors">
+                <div class="color-swatch" style="background: #000000;" data-color="#000000"></div>
+                <div class="color-swatch" style="background: #ff0000;" data-color="#ff0000"></div>
+                <div class="color-swatch" style="background: #00ff00;" data-color="#00ff00"></div>
+                <div class="color-swatch" style="background: #0000ff;" data-color="#0000ff"></div>
+                <div class="color-swatch" style="background: #ffff00;" data-color="#ffff00"></div>
+                <input type="color" id="colorPicker" class="color-picker" value="#000000">
+            </div>
+            
+            <button id="saveBtn">Save Image</button>
+            <button id="loadBtn">Load Image</button>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+        
+        <canvas id="myCanvas" width="800" height="500">
+            Your browser does not support the canvas element.
+        </canvas>
+        
+        <div class="tooltip" id="tooltip"></div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const toolSelect = document.getElementById('toolSelect');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeValue = document.getElementById('sizeValue');
+        const colorPicker = document.getElementById('colorPicker');
+        const clearBtn = document.getElementById('clearBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const tooltip = document.getElementById('tooltip');
+        
+        // Drawing state
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let currentTool = 'pencil';
+        let currentColor = '#000000';
+        let currentSize = 5;
+        let startX, startY;
+        let snapshot;
+        
+        // Event Listeners
+        toolSelect.addEventListener('change', (e) => {
+            currentTool = e.target.value;
+            canvas.style.cursor = currentTool === 'text' ? 'text' : 'crosshair';
+        });
+        
+        sizeSlider.addEventListener('input', (e) => {
+            currentSize = e.target.value;
+            sizeValue.textContent = currentSize;
+        });
+        
+        colorPicker.addEventListener('input', (e) => {
+            currentColor = e.target.value;
+            updateActiveSwatch();
+        });
+        
+        // Color swatches
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', (e) => {
+                currentColor = e.target.dataset.color;
+                colorPicker.value = currentColor;
+                updateActiveSwatch();
+            });
+        });
+        
+        function updateActiveSwatch() {
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.classList.toggle('active', swatch.dataset.color === currentColor);
+            });
+        }
+        
+        // Drawing functions
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+            startX = e.offsetX;
+            startY = e.offsetY;
+            
+            if (currentTool === 'text') {
+                const text = prompt('Enter text:', 'Hello');
+                if (text) {
+                    ctx.font = `${currentSize * 2}px Arial`;
+                    ctx.fillStyle = currentColor;
+                    ctx.fillText(text, lastX, lastY);
+                }
+                isDrawing = false;
+                return;
+            }
+            
+            // Create snapshot for shapes
+            if (currentTool !== 'pencil' && currentTool !== 'eraser') {
+                snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            }
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            ctx.strokeStyle = currentTool === 'eraser' ? '#ffffff' : currentColor;
+            ctx.fillStyle = currentColor;
+            ctx.lineWidth = currentSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            if (currentTool === 'pencil' || currentTool === 'eraser') {
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            } else if (snapshot) {
+                // Restore the snapshot
+                ctx.putImageData(snapshot, 0, 0);
+                
+                // Draw the current shape
+                switch (currentTool) {
+                    case 'rectangle':
+                        drawRectangle(e);
+                        break;
+                    case 'circle':
+                        drawCircle(e);
+                        break;
+                    case 'line':
+                        drawLine(e);
+                        break;
+                }
+            }
+        }
+        
+        function drawRectangle(e) {
+            const width = e.offsetX - startX;
+            const height = e.offsetY - startY;
+            ctx.strokeRect(startX, startY, width, height);
+        }
+        
+        function drawCircle(e) {
+            const radius = Math.sqrt(
+                Math.pow(e.offsetX - startX, 2) + 
+                Math.pow(e.offsetY - startY, 2)
+            );
+            ctx.beginPath();
+            ctx.arc(startX, startY, radius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        function drawLine(e) {
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        // Tooltip
+        function showTooltip(e) {
+            if (!isDrawing) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.pageX + 10) + 'px';
+                tooltip.style.top = (e.pageY + 10) + 'px';
+                tooltip.textContent = `X: ${e.offsetX}, Y: ${e.offsetY}`;
+            }
+        }
+        
+        function hideTooltip() {
+            tooltip.style.display = 'none';
+        }
+        
+        // Clear canvas
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear the canvas?')) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        });
+        
+        // Save and load
+        saveBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+        
+        loadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Clear canvas and draw the image
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // Scale image to fit canvas
+                    const scale = Math.min(
+                        canvas.width / img.width,
+                        canvas.height / img.height
+                    );
+                    const width = img.width * scale;
+                    const height = img.height * scale;
+                    const x = (canvas.width - width) / 2;
+                    const y = (canvas.height - height) / 2;
+                    
+                    ctx.drawImage(img, x, y, width, height);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Event listeners for drawing
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // Tooltip events
+        canvas.addEventListener('mousemove', showTooltip);
+        canvas.addEventListener('mouseout', hideTooltip);
+        
+        // Initialize
+        updateActiveSwatch();
+        
+        // Touch support
+        function getTouchPos(canvas, touchEvent) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: touchEvent.touches[0].clientX - rect.left,
+                y: touchEvent.touches[0].clientY - rect.top
+            };
+        }
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = getTouchPos(canvas, e);
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.x,
+                clientY: touch.y
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }, false);
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = getTouchPos(canvas, e);
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.x,
+                clientY: touch.y
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }, false);
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        }, false);
+    </script>
+</body>
+</html>

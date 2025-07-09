@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 18: Responsive Images & Picture Element - Solution</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    img, picture { display: block; max-width: 100%; margin: 0 auto 10px; border-radius: 8px; }
+    .img-demo { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 8px; }
+    .caption { color: #555; font-size: 0.98em; text-align: center; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Responsive Images & Picture Element - Solution</h1>
+
+  <div class="container">
+    <h2>1. Basic Responsive Images with <code>srcset</code> and <code>sizes</code></h2>
+    <div class="hint">Uses <code>srcset</code> for resolution switching and <code>sizes</code> for layout hints.</div>
+    <div class="img-demo">
+      <img 
+        id="responsiveImg"
+        src="https://picsum.photos/id/1015/400/250"
+        srcset="
+          https://picsum.photos/id/1015/400/250 400w,
+          https://picsum.photos/id/1015/800/500 800w
+        "
+        sizes="(max-width: 600px) 100vw, 600px"
+        alt="Responsive Demo">
+      <div class="caption">Try resizing the window to see the image source change.</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>2. Art Direction with <code>&lt;picture&gt;</code></h2>
+    <div class="hint">Shows a different image for mobile and desktop using <code>&lt;source&gt;</code> and <code>media</code> queries.</div>
+    <div class="img-demo">
+      <picture>
+        <source media="(max-width: 600px)" srcset="https://picsum.photos/id/1025/400/200">
+        <source media="(min-width: 601px)" srcset="https://picsum.photos/id/1025/800/400">
+        <img src="https://picsum.photos/id/1025/800/400" alt="Art Direction Demo">
+      </picture>
+      <div class="caption">On mobile, a different crop is shown for art direction.</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>3. Lazy Loading</h2>
+    <div class="hint">Uses <code>loading="lazy"</code> to defer image loading until needed.</div>
+    <div class="img-demo" style="height: 300px;">
+      <img 
+        id="lazyImg" 
+        src="https://picsum.photos/id/1041/800/400" 
+        alt="Lazy Loading Demo"
+        loading="lazy">
+      <div class="caption">Scroll down to load this image only when it enters the viewport.</div>
+    </div>
+  </div>
+
+</body>
+</html>

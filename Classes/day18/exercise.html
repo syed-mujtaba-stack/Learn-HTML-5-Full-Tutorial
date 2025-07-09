@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 18: Responsive Images & Picture Element - Exercise</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    img, picture { display: block; max-width: 100%; margin: 0 auto 10px; border-radius: 8px; }
+    .img-demo { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Responsive Images & Picture Element - Exercise</h1>
+
+  <div class="container">
+    <h2>1. Basic Responsive Images with <code>srcset</code> and <code>sizes</code></h2>
+    <p>Use <code>srcset</code> and <code>sizes</code> on the image below to serve different resolutions for different screen sizes.</p>
+    <div class="hint">Hint: Provide at least two image sources (e.g., 400w, 800w) and use <code>sizes</code> to describe the layout.</div>
+    <div class="img-demo">
+      <!-- TODO: Add srcset and sizes -->
+      <img id="responsiveImg" src="https://picsum.photos/id/1015/400/250" alt="Responsive Demo">
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>2. Art Direction with <code>&lt;picture&gt;</code></h2>
+    <p>Use the <code>&lt;picture&gt;</code> element to show a different image on mobile and desktop.</p>
+    <div class="hint">Hint: Use <code>&lt;source media="(max-width: 600px)" srcset="..."&gt;</code> for mobile, and a default <code>&lt;img&gt;</code> for desktop.</div>
+    <div class="img-demo">
+      <!-- TODO: Add picture element with sources for different viewports -->
+      <picture>
+        <!-- Add sources here -->
+        <img src="https://picsum.photos/id/1025/800/400" alt="Art Direction Demo">
+      </picture>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>3. Lazy Loading</h2>
+    <p>Make the image below load lazily only when it scrolls into view.</p>
+    <div class="hint">Hint: Use <code>loading="lazy"</code> attribute on the <code>&lt;img&gt;</code> tag.</div>
+    <div class="img-demo" style="height: 300px;">
+      <!-- TODO: Add loading="lazy" -->
+      <img id="lazyImg" src="https://picsum.photos/id/1041/800/400" alt="Lazy Loading Demo">
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration Form</title>
+</head>
+<body>
+    <h1>User Registration Form</h1>
+    
+    <form action="submit.php" method="post" autocomplete="on">
+        <!-- Personal Information -->
+        <fieldset>
+            <legend>Personal Information</legend>
+            
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required>
+        </fieldset>
+
+        <!-- Date and Time -->
+        <fieldset>
+            <legend>Date and Time Preferences</legend>
+            
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" name="dob" required>
+
+            <label for="color">Favorite Color:</label>
+            <input type="color" id="color" name="color" value="#ff0000">
+        </fieldset>
+
+        <!-- Address -->
+        <fieldset>
+            <legend>Address</legend>
+            
+            <label for="street">Street:</label>
+            <input type="text" id="street" name="street" required>
+
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" required>
+
+            <label for="state">State:</label>
+            <input type="text" id="state" name="state" required>
+
+            <label for="zip">ZIP Code:</label>
+            <input type="text" id="zip" name="zip" pattern="\d{5}" required>
+        </fieldset>
+
+        <!-- Preferences -->
+        <fieldset>
+            <legend>Preferences</legend>
+            
+            <label for="number">Favorite Number:</label>
+            <input type="range" id="number" name="number" min="1" max="100" step="1">
+
+            <label for="bio">About Yourself:</label>
+            <textarea id="bio" name="bio" rows="4" cols="50" required></textarea>
+        </fieldset>
+
+        <!-- File Upload -->
+        <fieldset>
+            <legend>Profile Picture</legend>
+            
+            <label for="photo">Choose Profile Picture:</label>
+            <input type="file" id="photo" name="photo" accept="image/*" required>
+        </fieldset>
+
+        <!-- Submit and Reset -->
+        <button type="submit">Submit</button>
+        <button type="reset">Reset</button>
+    </form>
+</body>
+</html>

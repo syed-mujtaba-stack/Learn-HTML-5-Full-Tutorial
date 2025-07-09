@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Player - Solution</title>
+    <style>
+        .media-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .player {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .player h2 {
+            background: #4a90e2;
+            color: white;
+            margin: 0;
+            padding: 10px 15px;
+            font-size: 1.2em;
+        }
+        .controls {
+            background: #f5f5f5;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        button, input[type="range"] {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+        }
+        button:hover {
+            background: #e9e9e9;
+        }
+        .time-display {
+            margin: 0 10px;
+            font-family: monospace;
+        }
+        video, audio {
+            width: 100%;
+            background: #000;
+        }
+        .playlist {
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .playlist-item {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .playlist-item:hover {
+            background: #e9e9e9;
+        }
+        .active {
+            background-color: #e1f5fe;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="media-container">
+        <h1>Media Player</h1>
+        
+        <!-- Audio Player -->
+        <div class="player">
+            <h2>Audio Player</h2>
+            <audio id="audioPlayer" controls>
+                <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+                <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.ogg" type="audio/ogg">
+                Your browser does not support the audio element.
+            </audio>
+            <div class="controls">
+                <button id="playPauseBtn">Play</button>
+                <button id="stopBtn">Stop</button>
+                <button id="muteBtn">Mute</button>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                <span class="time-display">
+                    <span id="currentTime">0:00</span> / 
+                    <span id="duration">0:00</span>
+                </span>
+            </div>
+            <div class="playlist">
+                <div class="playlist-item active" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Song 1</div>
+                <div class="playlist-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Song 2</div>
+                <div class="playlist-item" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">Song 3</div>
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div class="player">
+            <h2>Video Player</h2>
+            <video id="videoPlayer" width="100%" controls>
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                <source src="https://www.w3schools.com/html/mov_bbb.ogg" type="video/ogg">
+                Your browser does not support the video tag.
+            </video>
+            <div class="controls">
+                <button id="videoPlayPauseBtn">Play</button>
+                <button id="videoStopBtn">Stop</button>
+                <button id="videoMuteBtn">Mute</button>
+                <input type="range" id="videoVolumeSlider" min="0" max="1" step="0.1" value="1">
+                <span class="time-display">
+                    <span id="videoCurrentTime">0:00</span> / 
+                    <span id="videoDuration">0:00</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Audio Player
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const durationDisplay = document.getElementById('duration');
+        const playlistItems = document.querySelectorAll('.playlist-item');
+
+        // Video Player
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoPlayPauseBtn = document.getElementById('videoPlayPauseBtn');
+        const videoStopBtn = document.getElementById('videoStopBtn');
+        const videoMuteBtn = document.getElementById('videoMuteBtn');
+        const videoVolumeSlider = document.getElementById('videoVolumeSlider');
+        const videoCurrentTimeDisplay = document.getElementById('videoCurrentTime');
+        const videoDurationDisplay = document.getElementById('videoDuration');
+
+        // Format time in seconds to MM:SS
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // Audio Player Controls
+        playPauseBtn.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playPauseBtn.textContent = 'Pause';
+            } else {
+                audioPlayer.pause();
+                playPauseBtn.textContent = 'Play';
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            playPauseBtn.textContent = 'Play';
+        });
+
+        muteBtn.addEventListener('click', () => {
+            audioPlayer.muted = !audioPlayer.muted;
+            muteBtn.textContent = audioPlayer.muted ? 'Unmute' : 'Mute';
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            audioPlayer.volume = e.target.value;
+            audioPlayer.muted = e.target.value == 0;
+            muteBtn.textContent = audioPlayer.muted ? 'Unmute' : 'Mute';
+        });
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+            durationDisplay.textContent = formatTime(audioPlayer.duration) || '0:00';
+        });
+
+        // Playlist functionality
+        playlistItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const src = item.getAttribute('data-src');
+                audioPlayer.src = src;
+                audioPlayer.play();
+                playPauseBtn.textContent = 'Pause';
+                
+                // Update active state
+                playlistItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        // Video Player Controls
+        videoPlayPauseBtn.addEventListener('click', () => {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+                videoPlayPauseBtn.textContent = 'Pause';
+            } else {
+                videoPlayer.pause();
+                videoPlayPauseBtn.textContent = 'Play';
+            }
+        });
+
+        videoStopBtn.addEventListener('click', () => {
+            videoPlayer.pause();
+            videoPlayer.currentTime = 0;
+            videoPlayPauseBtn.textContent = 'Play';
+        });
+
+        videoMuteBtn.addEventListener('click', () => {
+            videoPlayer.muted = !videoPlayer.muted;
+            videoMuteBtn.textContent = videoPlayer.muted ? 'Unmute' : 'Mute';
+        });
+
+        videoVolumeSlider.addEventListener('input', (e) => {
+            videoPlayer.volume = e.target.value;
+            videoPlayer.muted = e.target.value == 0;
+            videoMuteBtn.textContent = videoPlayer.muted ? 'Unmute' : 'Mute';
+        });
+
+        videoPlayer.addEventListener('timeupdate', () => {
+            videoCurrentTimeDisplay.textContent = formatTime(videoPlayer.currentTime);
+            videoDurationDisplay.textContent = formatTime(videoPlayer.duration) || '0:00';
+        });
+
+        // Initialize
+        audioPlayer.volume = volumeSlider.value;
+        videoPlayer.volume = videoVolumeSlider.value;
+    </script>
+</body>
+</html>

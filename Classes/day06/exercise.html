@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Drawing - Exercise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        canvas {
+            border: 1px solid #000;
+            margin: 20px 0;
+        }
+        .controls {
+            margin: 10px 0;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Canvas Drawing</h1>
+    
+    <div class="controls">
+        <button id="clearBtn">Clear Canvas</button>
+        <button id="drawRectBtn">Draw Rectangle</button>
+        <button id="drawCircleBtn">Draw Circle</button>
+        <button id="drawLineBtn">Draw Line</button>
+    </div>
+    
+    <canvas id="myCanvas" width="600" height="400">
+        Your browser does not support the canvas element.
+    </canvas>
+
+    <script>
+        // Get the canvas element and its context
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Add your JavaScript code here
+        
+    </script>
+</body>
+</html>

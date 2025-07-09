@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 19: Accessibility (a11y) & ARIA - Exercise</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    .kbd { background: #eee; border-radius: 3px; padding: 2px 6px; font-family: monospace; }
+    .nav-demo { margin-bottom: 12px; }
+    .tabs { display: flex; border-bottom: 2px solid #ccc; }
+    .tab { padding: 10px 18px; cursor: pointer; border: none; background: none; font-size: 1em; }
+    .tab[aria-selected="true"] { border-bottom: 3px solid #007bff; font-weight: bold; color: #007bff; }
+    .tabpanel { padding: 18px; background: #fff; border-radius: 0 0 8px 8px; border: 1px solid #ddd; border-top: none; }
+    .visually-hidden { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <h1>Accessibility (a11y) & ARIA - Exercise</h1>
+
+  <div class="container">
+    <h2>1. Semantic HTML</h2>
+    <p>Refactor the navigation below to use semantic elements like <code>&lt;nav&gt;</code> and <code>&lt;a&gt;</code> with proper labels.</p>
+    <div class="hint">Hint: Use <code>&lt;nav aria-label="Main navigation"&gt;</code> and descriptive link text.</div>
+    <div class="nav-demo">
+      <!-- TODO: Refactor this to use semantic HTML -->
+      <div class="nav">
+        <span>Home</span> | <span>About</span> | <span>Contact</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>2. Keyboard Navigation</h2>
+    <p>Make the tab component below fully keyboard-accessible (Tab, Arrow keys, Enter/Space).</p>
+    <div class="hint">Hint: Use <code>tabindex</code>, <code>aria-selected</code>, and manage focus with JS.</div>
+    <div class="tabs" role="tablist">
+      <!-- TODO: Make these interactive and accessible -->
+      <button class="tab" role="tab" aria-selected="true" aria-controls="tabpanel-1" id="tab-1">Tab 1</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="tabpanel-2" id="tab-2">Tab 2</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="tabpanel-3" id="tab-3">Tab 3</button>
+    </div>
+    <div class="tabpanel" role="tabpanel" id="tabpanel-1" aria-labelledby="tab-1">Tab 1 content...</div>
+    <div class="tabpanel visually-hidden" role="tabpanel" id="tabpanel-2" aria-labelledby="tab-2">Tab 2 content...</div>
+    <div class="tabpanel visually-hidden" role="tabpanel" id="tabpanel-3" aria-labelledby="tab-3">Tab 3 content...</div>
+  </div>
+
+  <div class="container">
+    <h2>3. ARIA Roles & Attributes</h2>
+    <p>Add ARIA roles, labels, and states to improve screen reader accessibility for the tab component above.</p>
+    <div class="hint">Hint: Use <code>aria-label</code>, <code>aria-controls</code>, <code>aria-selected</code>, <code>aria-labelledby</code>, and <code>role</code> attributes appropriately.</div>
+  </div>
+
+  <div class="container">
+    <h2>4. Accessibility Testing</h2>
+    <p>Test your work by:</p>
+    <ul>
+      <li>Navigating with <span class="kbd">Tab</span> and <span class="kbd">Arrow</span> keys.</li>
+      <li>Using a screen reader (e.g., NVDA, VoiceOver, Narrator).</li>
+      <li>Checking for visible focus and correct announcements.</li>
+    </ul>
+  </div>
+
+  <script>
+    // TODO: Implement keyboard navigation and ARIA logic for tabs.
+  </script>
+</body>
+</html>

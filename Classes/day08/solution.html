@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<!-- Previous HTML content remains the same until the script section -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const elements = {
+                // Local Storage
+                localKey: document.getElementById('localKey'),
+                localValue: document.getElementById('localValue'),
+                saveLocal: document.getElementById('saveLocal'),
+                getLocal: document.getElementById('getLocal'),
+                removeLocal: document.getElementById('removeLocal'),
+                clearLocal: document.getElementById('clearLocal'),
+                localStorageData: document.getElementById('localStorageData'),
+                localStorageUsage: document.getElementById('localStorageUsage'),
+                
+                // Session Storage
+                sessionKey: document.getElementById('sessionKey'),
+                sessionValue: document.getElementById('sessionValue'),
+                saveSession: document.getElementById('saveSession'),
+                getSession: document.getElementById('getSession'),
+                removeSession: document.getElementById('removeSession'),
+                clearSession: document.getElementById('clearSession'),
+                sessionStorageData: document.getElementById('sessionStorageData'),
+                sessionStorageUsage: document.getElementById('sessionStorageUsage'),
+                
+                // To-Do List
+                todoInput: document.getElementById('todoInput'),
+                addTodo: document.getElementById('addTodo'),
+                clearCompleted: document.getElementById('clearCompleted'),
+                clearTodos: document.getElementById('clearTodos'),
+                todoList: document.getElementById('todoList'),
+                todoCount: document.getElementById('todoCount'),
+                completedCount: document.getElementById('completedCount'),
+                lastUpdated: document.getElementById('lastUpdated'),
+                
+                // Preferences
+                username: document.getElementById('username'),
+                theme: document.getElementById('theme'),
+                fontSize: document.getElementById('fontSize'),
+                fontSizeValue: document.getElementById('fontSizeValue')
+            };
+            
+            // Initialize
+            initApp();
+            
+            // Event Listeners
+            // Local Storage
+            elements.saveLocal.addEventListener('click', saveToLocalStorage);
+            elements.getLocal.addEventListener('click', getFromLocalStorage);
+            elements.removeLocal.addEventListener('click', removeFromLocalStorage);
+            elements.clearLocal.addEventListener('click', clearLocalStorage);
+            
+            // Session Storage
+            elements.saveSession.addEventListener('click', saveToSessionStorage);
+            elements.getSession.addEventListener('click', getFromSessionStorage);
+            elements.removeSession.addEventListener('click', removeFromSessionStorage);
+            elements.clearSession.addEventListener('click', clearSessionStorage);
+            
+            // To-Do List
+            elements.addTodo.addEventListener('click', addTodo);
+            elements.clearCompleted.addEventListener('click', clearCompletedTodos);
+            elements.clearTodos.addEventListener('click', clearAllTodos);
+            elements.todoInput.addEventListener('keypress', e => e.key === 'Enter' && addTodo());
+            
+            // Preferences
+            elements.savePrefs.addEventListener('click', savePreferences);
+            elements.loadPrefs.addEventListener('click', loadPreferences);
+            elements.resetPrefs.addEventListener('click', resetPreferences);
+            elements.fontSize.addEventListener('input', updateFontSizePreview);
+            elements.theme.addEventListener('change', applyTheme);
+            
+            // Storage Events
+            window.addEventListener('storage', handleStorageEvent);
+            
+            // Initialize the application
+            function initApp() {
+                loadTodos();
+                loadPreferences();
+                updateStorageUsage();
+                updateLastUpdated();
+                setupAutoSave();
+            }
+            
+            // Local Storage Functions
+            function saveToLocalStorage() {
+                const key = elements.localKey.value.trim();
+                const value = elements.localValue.value;
+                
+                if (!key) return alert('Please enter a key');
+                
+                try {
+                    localStorage.setItem(key, value);
+                    showMessage(`Saved: ${key} = ${value}`);
+                    updateStorageUsage();
+                } catch (e) {
+                    alert(isQuotaExceeded(e) ? 'Storage limit reached' : 'Error saving data');
+                }
+            }
+            
+            function getFromLocalStorage() {
+                const key = elements.localKey.value.trim();
+                if (!key) return displayAllLocalStorage();
+                
+                const value = localStorage.getItem(key);
+                elements.localStorageData.textContent = value === null ? 
+                    `No value for: ${key}` : `${key}: ${value}`;
+                if (value) elements.localValue.value = value;
+            }
+            
+            function removeFromLocalStorage() {
+                const key = elements.localKey.value.trim();
+                if (!key) return alert('Please enter a key');
+                
+                localStorage.removeItem(key);
+                showMessage(`Removed: ${key}`);
+                elements.localStorageData.textContent = `Removed: ${key}`;
+                updateStorageUsage();
+            }
+            
+            function clearLocalStorage() {
+                if (confirm('Clear ALL localStorage data?')) {
+                    localStorage.clear();
+                    showMessage('Local storage cleared');
+                    elements.localStorageData.textContent = 'Local storage is empty';
+                    updateStorageUsage();
+                }
+            }
+            
+            // Session Storage Functions (similar to Local Storage)
+            function saveToSessionStorage() {
+                const key = elements.sessionKey.value.trim();
+                const value = elements.sessionValue.value;
+                
+                if (!key) return alert('Please enter a key');
+                
+                try {
+                    sessionStorage.setItem(key, value);
+                    showMessage(`Saved: ${key} = ${value}`);
+                    updateStorageUsage();
+                } catch (e) {
+                    alert(isQuotaExceeded(e) ? 'Storage limit reached' : 'Error saving data');
+                }
+            }
+            
+            function getFromSessionStorage() {
+                const key = elements.sessionKey.value.trim();
+                if (!key) return displayAllSessionStorage();
+                
+                const value = sessionStorage.getItem(key);
+                elements.sessionStorageData.textContent = value === null ? 
+                    `No value for: ${key}` : `${key}: ${value}`;
+                if (value) elements.sessionValue.value = value;
+            }
+            
+            function removeFromSessionStorage() {
+                const key = elements.sessionKey.value.trim();
+                if (!key) return alert('Please enter a key');
+                
+                sessionStorage.removeItem(key);
+                showMessage(`Removed: ${key}`);
+                elements.sessionStorageData.textContent = `Removed: ${key}`;
+                updateStorageUsage();
+            }
+            
+            function clearSessionStorage() {
+                if (confirm('Clear ALL sessionStorage data?')) {
+                    sessionStorage.clear();
+                    showMessage('Session storage cleared');
+                    elements.sessionStorageData.textContent = 'Session storage is empty';
+                    updateStorageUsage();
+                }
+            }
+            
+            // To-Do List Functions
+            function addTodo() {
+                const text = elements.todoInput.value.trim();
+                if (!text) return alert('Please enter a task');
+                
+                const todos = getTodos();
+                todos.push({
+                    id: Date.now(),
+                    text: text,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                });
+                
+                saveTodos(todos);
+                elements.todoInput.value = '';
+                elements.todoInput.focus();
+                renderTodos();
+            }
+            
+            function toggleTodoComplete(id) {
+                const todos = getTodos().map(todo => 
+                    todo.id === id ? { ...todo, completed: !todo.completed } : todo
+                );
+                saveTodos(todos);
+                renderTodos();
+            }
+            
+            function deleteTodo(id) {
+                saveTodos(getTodos().filter(todo => todo.id !== id));
+                renderTodos();
+            }
+            
+            function clearCompletedTodos() {
+                saveTodos(getTodos().filter(todo => !todo.completed));
+                renderTodos();
+            }
+            
+            function clearAllTodos() {
+                if (confirm('Delete ALL tasks?')) {
+                    saveTodos([]);
+                    renderTodos();
+                }
+            }
+            
+            function getTodos() {
+                return JSON.parse(localStorage.getItem('todos') || '[]');
+            }
+            
+            function saveTodos(todos) {
+                localStorage.setItem('todos', JSON.stringify(todos));
+                updateLastUpdated();
+                updateStorageUsage();
+            }
+            
+            function loadTodos() {
+                renderTodos();
+            }
+            
+            function renderTodos() {
+                const todos = getTodos();
+                
+                if (todos.length === 0) {
+                    elements.todoList.innerHTML = '<p>No tasks yet. Add one above!</p>';
+                    elements.todoCount.textContent = '0';
+                    elements.completedCount.textContent = '0';
+                    return;
+                }
+                
+                const sortedTodos = [...todos].sort((a, b) => 
+                    a.completed !== b.completed ? (a.completed ? 1 : -1) : 
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                
+                elements.todoList.innerHTML = '';
+                
+                sortedTodos.forEach(todo => {
+                    const todoEl = document.createElement('div');
+                    todoEl.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                    todoEl.innerHTML = `
+                        <div style="display: flex; align-items: center; flex-grow: 1;">
+                            <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                                   style="margin-right: 10px;">
+                            <span style="flex-grow: 1;">${escapeHtml(todo.text)}</span>
+                            <small style="color: #666; margin-right: 10px;">
+                                ${new Date(todo.createdAt).toLocaleString()}
+                            </small>
+                        </div>
+                        <div class="todo-actions">
+                            <button class="todo-toggle">
+                                ${todo.completed ? '↩️ Undo' : '✓ Complete'}
+                            </button>
+                            <button class="delete-btn">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Add event listeners
+                    const toggleBtn = todoEl.querySelector('.todo-toggle');
+                    const deleteBtn = todoEl.querySelector('.delete-btn');
+                    const checkbox = todoEl.querySelector('input[type="checkbox"]');
+                    
+                    toggleBtn.onclick = () => toggleTodoComplete(todo.id);
+                    deleteBtn.onclick = () => deleteTodo(todo.id);
+                    checkbox.onchange = () => toggleTodoComplete(todo.id);
+                    
+                    elements.todoList.appendChild(todoEl);
+                });
+                
+                // Update counters
+                const completedCount = todos.filter(t => t.completed).length;
+                elements.todoCount.textContent = todos.length;
+                elements.completedCount.textContent = completedCount;
+            }
+            
+            // Preferences Functions
+            function savePreferences() {
+                const prefs = {
+                    username: elements.username.value.trim(),
+                    theme: elements.theme.value,
+                    fontSize: elements.fontSize.value
+                };
+                
+                localStorage.setItem('userPreferences', JSON.stringify(prefs));
+                applyPreferences(prefs);
+                showMessage('Preferences saved!');
+            }
+            
+            function loadPreferences() {
+                const savedPrefs = localStorage.getItem('userPreferences');
+                if (!savedPrefs) return showMessage('No saved preferences');
+                
+                const prefs = JSON.parse(savedPrefs);
+                elements.username.value = prefs.username || '';
+                elements.theme.value = prefs.theme || 'light';
+                elements.fontSize.value = prefs.fontSize || '16';
+                applyPreferences(prefs);
+                showMessage('Preferences loaded!');
+            }
+            
+            function resetPreferences() {
+                if (!confirm('Reset all preferences?')) return;
+                
+                const defaultPrefs = { username: '', theme: 'light', fontSize: '16' };
+                elements.username.value = '';
+                elements.theme.value = 'light';
+                elements.fontSize.value = '16';
+                
+                applyPreferences(defaultPrefs);
+                localStorage.removeItem('userPreferences');
+                showMessage('Preferences reset to defaults');
+            }
+            
+            function applyPreferences(prefs) {
+                document.body.className = `${prefs.theme}-theme`;
+                document.body.style.fontSize = `${prefs.fontSize}px`;
+                elements.fontSizeValue.textContent = `${prefs.fontSize}px`;
+                if (prefs.username) document.title = `${prefs.username}'s Web Storage Demo`;
+            }
+            
+            function updateFontSizePreview() {
+                elements.fontSizeValue.textContent = `${elements.fontSize.value}px`;
+            }
+            
+            function applyTheme() {
+                document.body.className = `${elements.theme.value}-theme`;
+            }
+            
+            function setupAutoSave() {
+                [elements.username, elements.theme, elements.fontSize].forEach(
+                    input => input.addEventListener('change', savePreferences)
+                );
+                elements.fontSize.addEventListener('input', updateFontSizePreview);
+            }
+            
+            // Storage Events
+            function handleStorageEvent(e) {
+                const eventInfo = `
+                    <div style="margin: 5px 0; padding: 5px; background: #f0f0f0; border-radius: 3px;">
+                        <strong>${new Date().toLocaleTimeString()}</strong> - 
+                        Key: ${e.key}, Value: ${e.newValue || 'null'}
+                    </div>
+                `;
+                
+                elements.storageEvents.insertAdjacentHTML('afterbegin', eventInfo);
+                
+                // Update storage usage if the storage changed
+                if (e.storageArea === localStorage || e.storageArea === sessionStorage) {
+                    updateStorageUsage();
+                }
+                
+                // If todos or preferences were updated, refresh them
+                if (e.key === 'todos') renderTodos();
+                if (e.key === 'userPreferences') loadPreferences();
+            }
+            
+            // Utility Functions
+            function displayAllLocalStorage() {
+                elements.localStorageData.textContent = JSON.stringify({...localStorage}, null, 2);
+            }
+            
+            function displayAllSessionStorage() {
+                elements.sessionStorageData.textContent = JSON.stringify({...sessionStorage}, null, 2);
+            }
+            
+            function updateStorageUsage() {
+                const localStorageSize = Object.entries(localStorage)
+                    .reduce((size, [key, value]) => size + key.length + value.length, 0);
+                
+                const sessionStorageSize = Object.entries(sessionStorage)
+                    .reduce((size, [key, value]) => size + key.length + value.length, 0);
+                
+                elements.localStorageUsage.textContent = formatBytes(localStorageSize);
+                elements.sessionStorageUsage.textContent = formatBytes(sessionStorageSize);
+            }
+            
+            function updateLastUpdated() {
+                elements.lastUpdated.textContent = new Date().toLocaleString();
+            }
+            
+            function showMessage(message) {
+                const msgEl = document.createElement('div');
+                msgEl.textContent = message;
+                msgEl.style.cssText = `
+                    position: fixed; bottom: 20px; right: 20px;
+                    background: #4CAF50; color: white; padding: 10px 20px;
+                    border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                    z-index: 1000; animation: fadeIn 0.3s;
+                `;
+                
+                document.body.appendChild(msgEl);
+                setTimeout(() => {
+                    msgEl.style.animation = 'fadeOut 0.3s';
+                    setTimeout(() => document.body.removeChild(msgEl), 300);
+                }, 3000);
+            }
+            
+            function isQuotaExceeded(e) {
+                return e.code === 22 || e.name === 'QuotaExceededError';
+            }
+            
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .toString()
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+            
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+            
+            // Add CSS for animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

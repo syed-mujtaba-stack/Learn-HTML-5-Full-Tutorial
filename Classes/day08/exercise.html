@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Storage - Exercise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .storage-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .data-display {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            min-height: 100px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Web Storage Exercise</h1>
+        
+        <div class="storage-section">
+            <h2>1. Local Storage</h2>
+            <div class="form-group">
+                <label for="localKey">Key:</label>
+                <input type="text" id="localKey" placeholder="Enter key">
+            </div>
+            <div class="form-group">
+                <label for="localValue">Value:</label>
+                <input type="text" id="localValue" placeholder="Enter value">
+            </div>
+            <div>
+                <button id="saveLocal">Save to Local Storage</button>
+                <button id="getLocal">Get from Local Storage</button>
+                <button id="removeLocal">Remove from Local Storage</button>
+                <button id="clearLocal">Clear All Local Storage</button>
+            </div>
+            <div class="data-display" id="localStorageData">Local Storage data will appear here</div>
+        </div>
+        
+        <div class="storage-section">
+            <h2>2. Session Storage</h2>
+            <div class="form-group">
+                <label for="sessionKey">Key:</label>
+                <input type="text" id="sessionKey" placeholder="Enter key">
+            </div>
+            <div class="form-group">
+                <label for="sessionValue">Value:</label>
+                <input type="text" id="sessionValue" placeholder="Enter value">
+            </div>
+            <div>
+                <button id="saveSession">Save to Session Storage</button>
+                <button id="getSession">Get from Session Storage</button>
+                <button id="removeSession">Remove from Session Storage</button>
+                <button id="clearSession">Clear All Session Storage</button>
+            </div>
+            <div class="data-display" id="sessionStorageData">Session Storage data will appear here</div>
+        </div>
+        
+        <div class="storage-section">
+            <h2>3. Simple To-Do List</h2>
+            <div class="form-group">
+                <label for="todoInput">Add a new task:</label>
+                <input type="text" id="todoInput" placeholder="Enter task">
+            </div>
+            <div>
+                <button id="addTodo">Add Task</button>
+                <button id="clearTodos">Clear All Tasks</button>
+            </div>
+            <div id="todoList">
+                <!-- Todo items will be added here -->
+            </div>
+        </div>
+        
+        <div class="storage-section">
+            <h2>4. User Preferences</h2>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label for="theme">Theme:</label>
+                <select id="theme">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="blue">Blue</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fontSize">Font Size:</label>
+                <input type="range" id="fontSize" min="12" max="24" value="16">
+                <span id="fontSizeValue">16px</span>
+            </div>
+            <div>
+                <button id="savePrefs">Save Preferences</button>
+                <button id="loadPrefs">Load Preferences</button>
+                <button id="resetPrefs">Reset to Defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Your JavaScript code will go here
+    </script>
+</body>
+</html>

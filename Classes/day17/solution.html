@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 17: Web Animations API & CSS Animations - Solution</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    .box { width: 80px; height: 80px; background: #007bff; border-radius: 8px; margin: 20px auto; transition: background 0.3s, transform 0.4s; }
+    button { padding: 8px 15px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+    button:disabled { background: #cccccc; }
+    .controls { text-align: center; margin-top: 10px; }
+    /* CSS Transition on hover */
+    #cssBox {
+      transition: transform 0.5s cubic-bezier(.68,-0.55,.27,1.55), background 0.3s;
+    }
+    #cssBox:hover {
+      background: #28a745;
+      transform: scale(1.25) rotate(15deg) translateY(-40px);
+    }
+    /* CSS Keyframes Animation */
+    #cssBox.animate {
+      animation: bounce 1s ease-in-out;
+    }
+    @keyframes bounce {
+      0%   { transform: translateY(0); }
+      30%  { transform: translateY(-60px) scale(1.2); }
+      50%  { transform: translateY(0) scale(1); }
+      70%  { transform: translateY(-30px) scale(1.1); }
+      100% { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Web Animations API & CSS Animations - Solution</h1>
+
+  <div class="container">
+    <h2>1. CSS Animation Basics</h2>
+    <p>Hover the blue box for a transition. Click it for a bounce keyframes animation.</p>
+    <div class="hint">Uses <code>:hover</code> for transitions and <code>@keyframes</code> for bounce effect.</div>
+    <div class="box" id="cssBox"></div>
+  </div>
+
+  <div class="container">
+    <h2>2. Web Animations API</h2>
+    <p>Animate the box below using the Web Animations API to move and scale it. Use the controls to interact.</p>
+    <div class="hint">Uses <code>element.animate()</code> and exposes play, pause, reverse, and reset controls.</div>
+    <div class="box" id="waapiBox"></div>
+    <div class="controls">
+      <button id="startAnim">Start</button>
+      <button id="pauseAnim">Pause</button>
+      <button id="reverseAnim">Reverse</button>
+      <button id="resetAnim">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    // CSS Keyframes Animation on click
+    const cssBox = document.getElementById('cssBox');
+    cssBox.addEventListener('click', () => {
+      cssBox.classList.remove('animate');
+      // Force reflow to restart animation
+      void cssBox.offsetWidth;
+      cssBox.classList.add('animate');
+      setTimeout(() => cssBox.classList.remove('animate'), 1000);
+    });
+
+    // Web Animations API Demo
+    const waapiBox = document.getElementById('waapiBox');
+    const startBtn = document.getElementById('startAnim');
+    const pauseBtn = document.getElementById('pauseAnim');
+    const reverseBtn = document.getElementById('reverseAnim');
+    const resetBtn = document.getElementById('resetAnim');
+    let animation = null;
+    let isReversed = false;
+
+    function createAnimation() {
+      return waapiBox.animate([
+        { transform: 'translateX(0) scale(1)', background: '#007bff' },
+        { transform: 'translateX(240px) scale(1.5)', background: '#ffc107' },
+        { transform: 'translateX(0) scale(1)', background: '#007bff' }
+      ], {
+        duration: 2000,
+        iterations: 1,
+        fill: 'forwards',
+        easing: 'cubic-bezier(.68,-0.55,.27,1.55)'
+      });
+    }
+
+    function resetAnimation() {
+      waapiBox.style.transform = 'translateX(0) scale(1)';
+      waapiBox.style.background = '#007bff';
+    }
+
+    startBtn.onclick = function() {
+      if (!animation || animation.playState === 'finished') {
+        animation = createAnimation();
+        isReversed = false;
+      } else {
+        animation.play();
+      }
+    };
+    pauseBtn.onclick = function() {
+      if (animation) animation.pause();
+    };
+    reverseBtn.onclick = function() {
+      if (!animation) return;
+      animation.reverse();
+      isReversed = !isReversed;
+    };
+    resetBtn.onclick = function() {
+      if (animation) {
+        animation.cancel();
+        animation = null;
+      }
+      resetAnimation();
+    };
+  </script>
+</body>
+</html>

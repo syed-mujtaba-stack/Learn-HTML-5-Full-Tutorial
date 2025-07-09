@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 11: Service Workers - Exercise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .online { background-color: #dff0d8; color: #3c763d; }
+        .offline { background-color: #f2dede; color: #a94442; }
+        .cached { background-color: #d9edf7; color: #31708f; }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .cached-files {
+            margin-top: 15px;
+        }
+        .cached-file {
+            padding: 8px;
+            margin: 5px 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Service Workers - Exercise</h1>
+    
+    <div class="container">
+        <h2>1. Register a Service Worker</h2>
+        <p>Service workers enable offline functionality and background sync for web applications.</p>
+        <button id="registerBtn">Register Service Worker</button>
+        <button id="unregisterBtn" disabled>Unregister Service Worker</button>
+        <div id="registrationStatus">Service Worker: Not registered</div>
+    </div>
+    
+    <div class="container">
+        <h2>2. Cache Management</h2>
+        <p>Cache static assets for offline use.</p>
+        <button id="cacheAssetsBtn" disabled>Cache Static Assets</button>
+        <button id="clearCacheBtn" disabled>Clear Cache</button>
+        <div id="cacheStatus">Cache status: Not available</div>
+        <div class="cached-files" id="cachedFiles"></div>
+    </div>
+    
+    <div class="container">
+        <h2>3. Offline Mode</h2>
+        <p>Test your application's offline capabilities.</p>
+        <div id="connectionStatus" class="online">Status: Online</div>
+        <button id="fetchDataBtn" disabled>Fetch Data</button>
+        <div id="dataResult">Data will appear here</div>
+    </div>
+    
+    <div class="container">
+        <h2>4. Background Sync</h2>
+        <p>Queue requests when offline and sync when back online.</p>
+        <button id="syncBtn" disabled>Sync Data</button>
+        <div id="syncStatus">Sync status: Not available</div>
+        <div id="syncResult"></div>
+    </div>
+    
+    <div class="container">
+        <h2>5. Push Notifications</h2>
+        <p>Request permission and test push notifications.</p>
+        <button id="requestPermissionBtn">Request Notification Permission</button>
+        <button id="showNotificationBtn" disabled>Show Notification</button>
+        <div id="notificationStatus">Notification permission: Default</div>
+    </div>
+    
+    <div class="container">
+        <h2>Exercise Instructions</h2>
+        <h3>1. Register a Service Worker</h3>
+        <p>Implement the service worker registration in the <code>registerServiceWorker()</code> function.</p>
+        
+        <h3>2. Cache Static Assets</h3>
+        <p>In the service worker, cache the following assets:</p>
+        <ul>
+            <li>This HTML file</li>
+            <li>Any CSS/JS files</li>
+            <li>An offline fallback page</li>
+        </ul>
+        
+        <h3>3. Handle Offline Requests</h3>
+        <p>Modify the service worker to serve cached content when offline.</p>
+        
+        <h3>4. Implement Background Sync</h3>
+        <p>Use the Background Sync API to queue requests when offline and process them when back online.</p>
+        
+        <h3>5. Push Notifications</h3>
+        <p>Implement push notification functionality in the service worker.</p>
+    </div>
+
+    <script>
+        // 1. Service Worker Registration
+        const registerBtn = document.getElementById('registerBtn');
+        const unregisterBtn = document.getElementById('unregisterBtn');
+        const registrationStatus = document.getElementById('registrationStatus');
+        
+        registerBtn.addEventListener('click', registerServiceWorker);
+        unregisterBtn.addEventListener('click', unregisterServiceWorker);
+        
+        async function registerServiceWorker() {
+            // TODO: Register a service worker
+            // 1. Check if service workers are supported
+            // 2. Register the service worker file (create a new file: 'sw.js')
+            // 3. Update the UI to show registration status
+            
+            // Example structure:
+            /*
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register('sw.js');
+                    // Update UI
+                } catch (error) {
+                    // Handle error
+                }
+            }
+            */
+            
+            // For now, just simulate successful registration
+            registrationStatus.textContent = 'Service Worker: Registered';
+            registerBtn.disabled = true;
+            unregisterBtn.disabled = false;
+            
+            // Enable other buttons that depend on service worker
+            document.getElementById('cacheAssetsBtn').disabled = false;
+            document.getElementById('fetchDataBtn').disabled = false;
+            document.getElementById('syncBtn').disabled = false;
+        }
+        
+        async function unregisterServiceWorker() {
+            // TODO: Unregister the service worker
+            // 1. Get all service worker registrations
+            // 2. Unregister each one
+            // 3. Update the UI
+            
+            // For now, just simulate unregistration
+            registrationStatus.textContent = 'Service Worker: Unregistered';
+            registerBtn.disabled = false;
+            unregisterBtn.disabled = true;
+            
+            // Disable dependent buttons
+            document.getElementById('cacheAssetsBtn').disabled = true;
+            document.getElementById('clearCacheBtn').disabled = true;
+            document.getElementById('fetchDataBtn').disabled = true;
+            document.getElementById('syncBtn').disabled = true;
+        }
+        
+        // 2. Cache Management
+        const cacheAssetsBtn = document.getElementById('cacheAssetsBtn');
+        const clearCacheBtn = document.getElementById('clearCacheBtn');
+        const cacheStatus = document.getElementById('cacheStatus');
+        const cachedFilesList = document.getElementById('cachedFiles');
+        
+        cacheAssetsBtn.addEventListener('click', cacheStaticAssets);
+        clearCacheBtn.addEventListener('click', clearCache);
+        
+        async function cacheStaticAssets() {
+            // TODO: Cache static assets
+            // 1. Open a cache
+            // 2. Add files to cache
+            // 3. Update the UI with cached files
+            
+            // For now, just simulate caching
+            const assetsToCache = [
+                '/',
+                'index.html',
+                'styles.css',
+                'app.js',
+                'offline.html'
+            ];
+            
+            cacheStatus.textContent = 'Caching assets...';
+            
+            // Simulate caching delay
+            setTimeout(() => {
+                updateCachedFilesList(assetsToCache);
+                cacheStatus.textContent = `Cached ${assetsToCache.length} assets`;
+                clearCacheBtn.disabled = false;
+            }, 1000);
+        }
+        
+        async function clearCache() {
+            // TODO: Clear the cache
+            // 1. Get all cache names
+            // 2. Delete each cache
+            // 3. Update the UI
+            
+            // For now, just simulate cache clearing
+            cacheStatus.textContent = 'Cache cleared';
+            cachedFilesList.innerHTML = '';
+            clearCacheBtn.disabled = true;
+        }
+        
+        function updateCachedFilesList(files) {
+            cachedFilesList.innerHTML = '';
+            files.forEach(file => {
+                const fileEl = document.createElement('div');
+                fileEl.className = 'cached-file';
+                fileEl.textContent = file;
+                cachedFilesList.appendChild(fileEl);
+            });
+        }
+        
+        // 3. Offline Mode
+        const connectionStatus = document.getElementById('connectionStatus');
+        const fetchDataBtn = document.getElementById('fetchDataBtn');
+        const dataResult = document.getElementById('dataResult');
+        
+        fetchDataBtn.addEventListener('click', fetchData);
+        
+        // Check online/offline status
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
+        
+        function updateConnectionStatus() {
+            if (navigator.onLine) {
+                connectionStatus.textContent = 'Status: Online';
+                connectionStatus.className = 'online';
+            } else {
+                connectionStatus.textContent = 'Status: Offline';
+                connectionStatus.className = 'offline';
+                dataResult.textContent = 'You are currently offline. Some features may be limited.';
+            }
+        }
+        
+        async function fetchData() {
+            // TODO: Fetch data with offline support
+            // 1. Try to fetch from network first
+            // 2. If offline, try to get from cache
+            // 3. If no cache, show offline message
+            
+            dataResult.textContent = 'Fetching data...';
+            
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                if (navigator.onLine) {
+                    // Simulate successful API response
+                    const data = {
+                        message: 'Data fetched from network',
+                        timestamp: new Date().toISOString()
+                    };
+                    dataResult.innerHTML = `
+                        <strong>Data received:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    
+                    // TODO: Cache the response
+                } else {
+                    // Try to get from cache
+                    // const cachedResponse = await caches.match('api/data');
+                    // if (cachedResponse) { ... }
+                    
+                    dataResult.textContent = 'You are offline. Using cached data (if available).';
+                }
+            } catch (error) {
+                dataResult.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        // 4. Background Sync
+        const syncBtn = document.getElementById('syncBtn');
+        const syncStatus = document.getElementById('syncStatus');
+        const syncResult = document.getElementById('syncResult');
+        
+        syncBtn.addEventListener('click', registerSync);
+        
+        async function registerSync() {
+            // TODO: Register a background sync
+            // 1. Check if service worker is registered and ready
+            // 2. Register a sync event
+            
+            syncStatus.textContent = 'Sync registered. Will sync when online...';
+            syncResult.textContent = 'Queued data will be synced when you are back online.';
+            
+            // In a real app, you would queue the data to be synced
+            // and the service worker would handle the sync event
+        }
+        
+        // 5. Push Notifications
+        const requestPermissionBtn = document.getElementById('requestPermissionBtn');
+        const showNotificationBtn = document.getElementById('showNotificationBtn');
+        const notificationStatus = document.getElementById('notificationStatus');
+        
+        requestPermissionBtn.addEventListener('click', requestNotificationPermission);
+        showNotificationBtn.addEventListener('click', showNotification);
+        
+        // Check current permission status
+        if ('Notification' in window) {
+            updateNotificationStatus();
+            
+            // Listen for permission changes
+            Notification.requestPermission().then(updateNotificationStatus);
+        } else {
+            notificationStatus.textContent = 'Notifications not supported in this browser';
+            requestPermissionBtn.disabled = true;
+        }
+        
+        function updateNotificationStatus() {
+            if (!('Notification' in window)) return;
+            
+            const permission = Notification.permission;
+            notificationStatus.textContent = `Notification permission: ${permission}`;
+            
+            if (permission === 'granted') {
+                requestPermissionBtn.disabled = true;
+                showNotificationBtn.disabled = false;
+            } else {
+                showNotificationBtn.disabled = true;
+            }
+        }
+        
+        function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                notificationStatus.textContent = 'This browser does not support notifications';
+                return;
+            }
+            
+            Notification.requestPermission().then(permission => {
+                updateNotificationStatus();
+                
+                if (permission === 'granted') {
+                    // TODO: Subscribe to push notifications
+                    // This would involve registering with a push service
+                    notificationStatus.textContent = 'Notification permission granted!';
+                }
+            });
+        }
+        
+        function showNotification() {
+            if (!('Notification' in window) || Notification.permission !== 'granted') {
+                notificationStatus.textContent = 'Cannot show notification: Permission not granted';
+                return;
+            }
+            
+            // Show a simple notification
+            const notification = new Notification('Hello from Service Worker!', {
+                body: 'This is a test notification.',
+                icon: 'https://via.placeholder.com/192',
+                badge: 'https://via.placeholder.com/96',
+                vibrate: [200, 100, 200]
+            });
+            
+            notification.onclick = () => {
+                console.log('Notification clicked');
+                window.focus();
+                notification.close();
+            };
+        }
+        
+        // Check if service workers are supported
+        if ('serviceWorker' in navigator) {
+            // Enable register button
+            registerBtn.disabled = false;
+            
+            // Check if already registered
+            navigator.serviceWorker.getRegistration().then(registration => {
+                if (registration) {
+                    registrationStatus.textContent = 'Service Worker: Already registered';
+                    registerBtn.disabled = true;
+                    unregisterBtn.disabled = false;
+                    
+                    // Enable dependent buttons
+                    document.getElementById('cacheAssetsBtn').disabled = false;
+                    document.getElementById('fetchDataBtn').disabled = false;
+                    document.getElementById('syncBtn').disabled = false;
+                }
+            });
+        } else {
+            registrationStatus.textContent = 'Service Worker: Not supported in this browser';
+            registerBtn.disabled = true;
+        }
+    </script>
+</body>
+</html>

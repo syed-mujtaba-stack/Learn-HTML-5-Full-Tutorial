@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 15: WebSockets & Real-Time Communication - Solution</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    #chat { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; min-height: 200px; margin-bottom: 10px; overflow-y: auto; }
+    #messageInput { width: 70%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    #sendBtn { padding: 8px 15px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    .status { margin-bottom: 10px; color: #888; }
+    .msg { margin: 4px 0; }
+    .msg.me { color: #007bff; }
+    .msg.server { color: #28a745; }
+    .msg.error { color: #d9534f; }
+  </style>
+</head>
+<body>
+  <h1>WebSockets & Real-Time Communication - Solution</h1>
+
+  <div class="container">
+    <div class="status" id="status">Disconnected</div>
+    <div id="chat"></div>
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button id="sendBtn">Send</button>
+    <button id="connectBtn">Connect</button>
+    <button id="disconnectBtn">Disconnect</button>
+  </div>
+
+  <script>
+    let ws = null;
+    const statusEl = document.getElementById('status');
+    const chatEl = document.getElementById('chat');
+    const inputEl = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+
+    function addMessage(text, type = '') {
+      const div = document.createElement('div');
+      div.className = 'msg ' + type;
+      div.textContent = text;
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function connect() {
+      if (ws && ws.readyState === WebSocket.OPEN) return;
+      ws = new WebSocket('wss://ws.ifelse.io');
+      setStatus('Connecting...');
+      ws.onopen = () => {
+        setStatus('Connected');
+        addMessage('Connected to server.', 'server');
+      };
+      ws.onmessage = e => {
+        addMessage('Server: ' + e.data, 'server');
+      };
+      ws.onerror = e => {
+        addMessage('Error: ' + (e.message || 'Unknown error'), 'error');
+      };
+      ws.onclose = () => {
+        setStatus('Disconnected');
+        addMessage('Disconnected from server.', 'error');
+      };
+    }
+
+    function disconnect() {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+    }
+
+    sendBtn.onclick = () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        const msg = inputEl.value;
+        if (msg.trim() !== '') {
+          ws.send(msg);
+          addMessage('Me: ' + msg, 'me');
+          inputEl.value = '';
+        }
+      } else {
+        addMessage('Not connected.', 'error');
+      }
+    };
+    inputEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') sendBtn.click();
+    });
+    connectBtn.onclick = connect;
+    disconnectBtn.onclick = disconnect;
+    // Optionally, auto-connect on page load
+    // connect();
+  </script>
+</body>
+</html>

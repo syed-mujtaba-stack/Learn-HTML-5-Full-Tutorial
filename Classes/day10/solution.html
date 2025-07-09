@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 10: Web Workers - Solution</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            background-color: white;
+        }
+        .controls {
+            margin: 15px 0;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .code-block {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #4CAF50;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Workers - Solution</h1>
+    
+    <div class="container">
+        <h2>1. Simple Web Worker</h2>
+        <div class="controls">
+            <button id="startWorker">Start Worker</button>
+            <button id="stopWorker" disabled>Stop Worker</button>
+        </div>
+        <div id="workerOutput">Worker status: Not started</div>
+        <div id="workerResult"></div>
+        
+        <h3>Worker Code:</h3>
+        <div class="code-block">// simple-worker.js
+self.onmessage = function(e) {
+    let count = 1;
+    const timer = setInterval(() => {
+        if (count > 10) {
+            clearInterval(timer);
+            self.postMessage({ type: 'complete' });
+            return;
+        }
+        self.postMessage({ type: 'count', value: count });
+        count++;
+    }, 1000);
+    
+    // Handle termination from main thread
+    self.onmessage = function(e) {
+        if (e.data === 'stop') {
+            clearInterval(timer);
+            self.postMessage({ type: 'stopped' });
+        }
+    };
+};</div>
+    </div>
+
+    <div class="container">
+        <h2>2. Fibonacci Calculator</h2>
+        <div class="controls">
+            <input type="number" id="fibNumber" min="1" max="50" value="40">
+            <button id="calculateFib">Calculate on Main Thread</button>
+            <button id="calculateFibWorker">Calculate with Worker</button>
+        </div>
+        <div id="fibResult">Result will appear here</div>
+        <div id="fibTime"></div>
+        
+        <h3>Fibonacci Worker Code:</h3>
+        <div class="code-block">// fibonacci-worker.js
+function fibonacci(n) {
+    if (n <= 1) return n;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+self.onmessage = function(e) {
+    const start = performance.now();
+    const result = fibonacci(e.data);
+    const end = performance.now();
+    
+    self.postMessage({
+        result: result,
+        time: end - start,
+        n: e.data
+    });
+};</div>
+    </div>
+
+    <div class="container">
+        <h2>3. Image Processing</h2>
+        <div class="controls">
+            <input type="file" id="imageInput" accept="image/*">
+            <button id="processImage" disabled>Process Image</button>
+            <button id="processImageWorker" disabled>Process with Worker</button>
+        </div>
+        <div style="display: flex; gap: 20px; margin-top: 15px; flex-wrap: wrap;">
+            <div>
+                <h3>Original</h3>
+                <canvas id="originalCanvas" width="300" height="200" style="border: 1px solid #ddd;"></canvas>
+            </div>
+            <div>
+                <h3>Processed</h3>
+                <canvas id="processedCanvas" width="300" height="200" style="border: 1px solid #ddd;"></canvas>
+            </div>
+        </div>
+        <div id="imageProcessingTime"></div>
+        
+        <h3>Image Worker Code:</h3>
+        <div class="code-block">// image-worker.js
+self.onmessage = function(e) {
+    const { imageData, operation } = e.data;
+    const { data, width, height } = imageData;
+    const result = new Uint8ClampedArray(data);
+    
+    const start = performance.now();
+    
+    switch(operation) {
+        case 'grayscale':
+            for (let i = 0; i < result.length; i += 4) {
+                const avg = (result[i] + result[i + 1] + result[i + 2]) / 3;
+                result[i] = avg;     // R
+                result[i + 1] = avg; // G
+                result[i + 2] = avg; // B
+            }
+            break;
+            
+        case 'invert':
+            for (let i = 0; i < result.length; i += 4) {
+                result[i] = 255 - result[i];         // R
+                result[i + 1] = 255 - result[i + 1]; // G
+                result[i + 2] = 255 - result[i + 2]; // B
+            }
+            break;
+            
+        case 'sepia':
+            for (let i = 0; i < result.length; i += 4) {
+                const r = result[i];
+                const g = result[i + 1];
+                const b = result[i + 2];
+                
+                result[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));     // R
+                result[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168)); // G
+                result[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131)); // B
+            }
+            break;
+    }
+    
+    const end = performance.now();
+    
+    self.postMessage({
+        processedData: result.buffer,
+        width,
+        height,
+        time: end - start
+    }, [result.buffer]);
+};</div>
+    </div>
+
+    <script>
+        // Simple Web Worker
+        let worker;
+        
+        document.getElementById('startWorker').addEventListener('click', () => {
+            // Create a new Web Worker
+            worker = new Worker(URL.createObjectURL(new Blob([
+                `self.onmessage = function(e) {
+                    let count = 1;
+                    const timer = setInterval(() => {
+                        if (count > 10) {
+                            clearInterval(timer);
+                            self.postMessage({ type: 'complete' });
+                            return;
+                        }
+                        self.postMessage({ type: 'count', value: count });
+                        count++;
+                    }, 1000);
+                    
+                    // Handle termination from main thread
+                    self.onmessage = function(e) {
+                        if (e.data === 'stop') {
+                            clearInterval(timer);
+                            self.postMessage({ type: 'stopped' });
+                        }
+                    };
+                };`
+            ], { type: 'application/javascript' })));
+            
+            worker.onmessage = function(e) {
+                const output = document.getElementById('workerOutput');
+                const result = document.getElementById('workerResult');
+                
+                if (e.data.type === 'count') {
+                    result.textContent = `Count: ${e.data.value}`;
+                } else if (e.data.type === 'complete') {
+                    output.textContent = 'Worker status: Completed';
+                    document.getElementById('startWorker').disabled = false;
+                    document.getElementById('stopWorker').disabled = true;
+                    result.textContent += ' (Done!)';
+                } else if (e.data.type === 'stopped') {
+                    output.textContent = 'Worker status: Stopped by user';
+                    result.textContent += ' (Stopped)';
+                }
+            };
+            
+            document.getElementById('startWorker').disabled = true;
+            document.getElementById('stopWorker').disabled = false;
+            document.getElementById('workerOutput').textContent = 'Worker status: Running';
+            document.getElementById('workerResult').textContent = '';
+        });
+
+        document.getElementById('stopWorker').addEventListener('click', () => {
+            if (worker) {
+                worker.postMessage('stop');
+                worker.terminate();
+                worker = null;
+                
+                document.getElementById('startWorker').disabled = false;
+                document.getElementById('stopWorker').disabled = true;
+            }
+        });
+
+        // Fibonacci Calculator
+        function fibonacci(n) {
+            if (n <= 1) return n;
+            return fibonacci(n - 1) + fibonacci(n - 2);
+        }
+
+        document.getElementById('calculateFib').addEventListener('click', () => {
+            const n = parseInt(document.getElementById('fibNumber').value);
+            const start = performance.now();
+            
+            // Calculate on main thread (will block UI)
+            const result = fibonacci(n);
+            
+            const end = performance.now();
+            document.getElementById('fibResult').textContent = `Fibonacci(${n}) = ${result}`;
+            document.getElementById('fibTime').textContent = 
+                `Calculated in ${(end - start).toFixed(2)}ms on main thread (UI was blocked during this time)`;
+        });
+
+        document.getElementById('calculateFibWorker').addEventListener('click', () => {
+            const n = parseInt(document.getElementById('fibNumber').value);
+            
+            const worker = new Worker(URL.createObjectURL(new Blob([
+                `function fibonacci(n) {
+                    if (n <= 1) return n;
+                    return fibonacci(n - 1) + fibonacci(n - 2);
+                }
+                
+                self.onmessage = function(e) {
+                    const start = performance.now();
+                    const result = fibonacci(e.data);
+                    const end = performance.now();
+                    
+                    self.postMessage({
+                        result: result,
+                        time: end - start,
+                        n: e.data
+                    });
+                };`
+            ], { type: 'application/javascript' })));
+            
+            worker.onmessage = function(e) {
+                const { result, time, n } = e.data;
+                document.getElementById('fibResult').textContent = `Fibonacci(${n}) = ${result}`;
+                document.getElementById('fibTime').textContent = 
+                    `Calculated in ${time.toFixed(2)}ms using Web Worker (UI remained responsive)`;
+                worker.terminate();
+            };
+            
+            worker.postMessage(n);
+        });
+
+        // Image Processing
+        const imageInput = document.getElementById('imageInput');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const processedCanvas = document.getElementById('processedCanvas');
+        const processBtn = document.getElementById('processImage');
+        const processWorkerBtn = document.getElementById('processImageWorker');
+        
+        let originalImageData = null;
+        
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const ctx = originalCanvas.getContext('2d');
+                    originalCanvas.width = Math.min(400, img.width);
+                    originalCanvas.height = (originalCanvas.width / img.width) * img.height;
+                    ctx.drawImage(img, 0, 0, originalCanvas.width, originalCanvas.height);
+                    
+                    // Store the image data for processing
+                    originalImageData = ctx.getImageData(0, 0, originalCanvas.width, originalCanvas.height);
+                    processBtn.disabled = false;
+                    processWorkerBtn.disabled = false;
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Process on main thread
+        processBtn.addEventListener('click', () => {
+            if (!originalImageData) return;
+            
+            const start = performance.now();
+            const processedData = applyGrayscale(originalImageData);
+            const end = performance.now();
+            
+            const ctx = processedCanvas.getContext('2d');
+            processedCanvas.width = originalCanvas.width;
+            processedCanvas.height = originalCanvas.height;
+            ctx.putImageData(processedData, 0, 0);
+            
+            document.getElementById('imageProcessingTime').textContent = 
+                `Image processed in ${(end - start).toFixed(2)}ms on main thread (UI was blocked)`;
+        });
+        
+        // Process with Web Worker
+        processWorkerBtn.addEventListener('click', () => {
+            if (!originalImageData) return;
+            
+            const worker = new Worker(URL.createObjectURL(new Blob([
+                `self.onmessage = function(e) {
+                    const { imageData, operation } = e.data;
+                    const { data, width, height } = imageData;
+                    const result = new Uint8ClampedArray(data);
+                    
+                    const start = performance.now();
+                    
+                    switch(operation) {
+                        case 'grayscale':
+                            for (let i = 0; i < result.length; i += 4) {
+                                const avg = (result[i] + result[i + 1] + result[i + 2]) / 3;
+                                result[i] = avg;     // R
+                                result[i + 1] = avg; // G
+                                result[i + 2] = avg; // B
+                            }
+                            break;
+                            
+                        case 'invert':
+                            for (let i = 0; i < result.length; i += 4) {
+                                result[i] = 255 - result[i];         // R
+                                result[i + 1] = 255 - result[i + 1]; // G
+                                result[i + 2] = 255 - result[i + 2]; // B
+                            }
+                            break;
+                            
+                        case 'sepia':
+                            for (let i = 0; i < result.length; i += 4) {
+                                const r = result[i];
+                                const g = result[i + 1];
+                                const b = result[i + 2];
+                                
+                                result[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));     // R
+                                result[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168)); // G
+                                result[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131)); // B
+                            }
+                            break;
+                    }
+                    
+                    const end = performance.now();
+                    
+                    self.postMessage({
+                        processedData: result.buffer,
+                        width,
+                        height,
+                        time: end - start
+                    }, [result.buffer]);
+                };`
+            ], { type: 'application/javascript' })));
+            
+            worker.onmessage = function(e) {
+                const { processedData, width, height, time } = e.data;
+                
+                const ctx = processedCanvas.getContext('2d');
+                processedCanvas.width = width;
+                processedCanvas.height = height;
+                
+                const imageData = new ImageData(new Uint8ClampedArray(processedData), width, height);
+                ctx.putImageData(imageData, 0, 0);
+                
+                document.getElementById('imageProcessingTime').textContent = 
+                    `Image processed in ${time.toFixed(2)}ms using Web Worker (UI remained responsive)`;
+                
+                worker.terminate();
+            };
+            
+            // Send image data to worker
+            worker.postMessage({
+                imageData: {
+                    data: originalImageData.data.buffer,
+                    width: originalImageData.width,
+                    height: originalImageData.height
+                },
+                operation: 'grayscale' // or 'invert' or 'sepia'
+            }, [originalImageData.data.buffer]);
+        });
+        
+        // Helper function for grayscale (used for main thread processing)
+        function applyGrayscale(imageData) {
+            const data = new Uint8ClampedArray(imageData.data);
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = avg;     // R
+                data[i + 1] = avg; // G
+                data[i + 2] = avg; // B
+                // Alpha remains the same
+            }
+            return new ImageData(data, imageData.width, imageData.height);
+        }
+    </script>
+</body>
+</html>

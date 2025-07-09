@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 20: Progressive Web Apps (PWA) Essentials - Exercise</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2196f3">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    code { background: #f8f9fa; padding: 2px 4px; border-radius: 3px; }
+    ul { margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Progressive Web Apps (PWA) Essentials - Exercise</h1>
+
+  <div class="container">
+    <h2>1. Web App Manifest</h2>
+    <p>Create a <code>manifest.json</code> with name, short_name, icons, and theme_color. Link it in the HTML <code>&lt;head&gt;</code>.</p>
+    <div class="hint">Hint: Use <code>"start_url"</code>, <code>"display"</code>, and at least one icon (192x192 or 512x512).</div>
+    <ul>
+      <li>File: <code>manifest.json</code></li>
+      <li>Link: <code>&lt;link rel="manifest" href="manifest.json"&gt;</code></li>
+    </ul>
+  </div>
+
+  <div class="container">
+    <h2>2. Service Worker Registration</h2>
+    <p>Register a service worker (<code>sw.js</code>) that caches site assets for offline use.</p>
+    <div class="hint">Hint: Use <code>navigator.serviceWorker.register()</code> and cache <code>index.html</code>, CSS, and JS files in the install event.</div>
+    <button id="registerSW">Register Service Worker</button>
+    <div id="swStatus"></div>
+  </div>
+
+  <div class="container">
+    <h2>3. Add to Home Screen</h2>
+    <p>Test PWA installability using Chrome or Edge. Make sure the manifest and service worker are working.</p>
+    <div class="hint">Hint: You should see an install prompt or "Add to Home Screen" option in the browser menu.</div>
+  </div>
+
+  <div class="container">
+    <h2>4. Testing PWA Features</h2>
+    <ul>
+      <li>Test offline mode by disconnecting from the network.</li>
+      <li>Check the "Application" tab in DevTools for manifest and service worker status.</li>
+      <li>Try installing the app on your device.</li>
+    </ul>
+  </div>
+
+  <script>
+    // TODO: Implement service worker registration logic here.
+    document.getElementById('registerSW').onclick = function() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            document.getElementById('swStatus').textContent = 'Service Worker registered!';
+          })
+          .catch(err => {
+            document.getElementById('swStatus').textContent = 'Registration failed: ' + err;
+          });
+      } else {
+        document.getElementById('swStatus').textContent = 'Service Worker not supported.';
+      }
+    };
+  </script>
+</body>
+</html>

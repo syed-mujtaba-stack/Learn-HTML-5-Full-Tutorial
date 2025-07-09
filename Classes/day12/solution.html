@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 12: Web Components - Solution</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .component-preview {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+            background-color: white;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .solution {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Components - Solution</h1>
+    
+    <div class="container">
+        <h2>1. Custom Element</h2>
+        <p>A custom <code>&lt;greeting-message&gt;</code> element that displays a greeting.</p>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <greeting-message name="World"></greeting-message>
+        </div>
+        
+        <button id="updateGreeting">Change Name to "Alice"</button>
+        
+        <div class="solution">
+            <h4>Solution Code:</h4>
+            <pre><code>class GreetingMessage extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.update();
+    }
+    
+    static get observedAttributes() {
+        return ['name'];
+    }
+    
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.update();
+        }
+    }
+    
+    update() {
+        const name = this.getAttribute('name') || 'World';
+        this.shadowRoot.innerHTML = `
+            <style>
+                p {
+                    font-size: 1.2em;
+                    color: #333;
+                    margin: 0;
+                    padding: 10px;
+                    background-color: #e3f2fd;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+            </style>
+            <p>Hello, ${name}!</p>
+        `;
+    }
+}
+
+customElements.define('greeting-message', GreetingMessage);</code></pre>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>2. Shadow DOM</h2>
+        <p>A custom <code>&lt;fancy-button&gt;</code> using Shadow DOM for style encapsulation.</p>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <fancy-button>Click Me</fancy-button>
+            
+            <p>This is a regular button for comparison:</p>
+            <button>Regular Button</button>
+        </div>
+        
+        <div class="solution">
+            <h4>Solution Code:</h4>
+            <pre><code>class FancyButton extends HTMLElement {
+    constructor() {
+        super();
+        
+        // Create shadow root
+        this.attachShadow({ mode: 'open' });
+        
+        // Create button element
+        const button = document.createElement('button');
+        button.textContent = this.textContent;
+        
+        // Add styles to shadow DOM
+        const style = document.createElement('style');
+        style.textContent = `
+            button {
+                background: linear-gradient(to bottom, #4CAF50, #45a049);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 25px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            button:hover {
+                background: linear-gradient(to bottom, #45a049, #3d8b40);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+                transform: translateY(-2px);
+            }
+            
+            button:active {
+                transform: translateY(1px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            
+            button::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    transparent
+                );
+                transition: 0.5s;
+            }
+            
+            button:hover::before {
+                left: 100%;
+            }
+        `;
+        
+        // Add elements to shadow DOM
+        this.shadowRoot.appendChild(style);
+        this.shadowRoot.appendChild(button);
+    }
+}
+
+customElements.define('fancy-button', FancyButton);</code></pre>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>3. HTML Templates</h2>
+        <p>A custom <code>&lt;user-card&gt;</code> using HTML templates.</p>
+        
+        <template id="user-card-template">
+            <style>
+                .user-card {
+                    font-family: 'Arial', sans-serif;
+                    background: #f4f4f4;
+                    width: 100%;
+                    max-width: 400px;
+                    display: flex;
+                    margin-bottom: 10px;
+                    border-bottom: 2px #ccc solid;
+                    padding-bottom: 15px;
+                }
+                
+                .user-card img {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    margin-right: 15px;
+                    border: 3px solid #4CAF50;
+                }
+                
+                .user-info {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                }
+                
+                .user-info h3 {
+                    margin: 0;
+                    color: #333;
+                }
+                
+                .user-info p {
+                    margin: 5px 0 0;
+                    color: #666;
+                }
+            </style>
+            <div class="user-card">
+                <img src="" alt="User Avatar" class="avatar">
+                <div class="user-info">
+                    <h3 class="name"></h3>
+                    <p class="email"></p>
+                </div>
+            </div>
+        </template>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <user-card 
+                name="John Doe" 
+                email="john@example.com"
+                avatar="https://i.pravatar.cc/100?img=1">
+            </user-card>
+            
+            <div style="margin-top: 20px;">
+                <button id="changeUser">Change User</button>
+            </div>
+        </div>
+        
+        <div class="solution">
+            <h4>Solution Code:</h4>
+            <pre><code>class UserCard extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        
+        // Get the template
+        const template = document.getElementById('user-card-template');
+        const templateContent = template.content.cloneNode(true);
+        
+        // Add the template to the shadow root
+        this.shadowRoot.appendChild(templateContent);
+        
+        // Cache elements
+        this.avatarEl = this.shadowRoot.querySelector('.avatar');
+        this.nameEl = this.shadowRoot.querySelector('.name');
+        this.emailEl = this.shadowRoot.querySelector('.email');
+        
+        // Initial render
+        this._render();
+    }
+    
+    static get observedAttributes() {
+        return ['name', 'email', 'avatar'];
+    }
+    
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this._render();
+        }
+    }
+    
+    _render() {
+        if (this.avatarEl) this.avatarEl.src = this.getAttribute('avatar') || '';
+        if (this.nameEl) this.nameEl.textContent = this.getAttribute('name') || '';
+        if (this.emailEl) this.emailEl.textContent = this.getAttribute('email') || '';
+    }
+}
+
+customElements.define('user-card', UserCard);</code></pre>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>4. Slots</h2>
+        <p>A custom <code>&lt;collapsible-panel&gt;</code> using slots for content.</p>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <collapsible-panel>
+                <span slot="title">Click to toggle</span>
+                <div slot="content">
+                    <p>This is the collapsible content. It can contain any HTML.</p>
+                    <p>It's hidden by default and shown when the header is clicked.</p>
+                </div>
+            </collapsible-panel>
+        </div>
+        
+        <div class="solution">
+            <h4>Solution Code:</h4>
+            <pre><code>class CollapsiblePanel extends HTMLElement {
+    constructor() {
+        super();
+        
+        // Create shadow root
+        this.attachShadow({ mode: 'open' });
+        
+        // Create styles
+        const style = document.createElement('style');
+        style.textContent = `
+            :host {
+                display: block;
+                margin: 10px 0;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                overflow: hidden;
+            }
+            
+            .header {
+                padding: 12px 20px;
+                background-color: #f5f5f5;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                user-select: none;
+                transition: background-color 0.2s;
+            }
+            
+            .header:hover {
+                background-color: #e9e9e9;
+            }
+            
+            .header::after {
+                content: '▼';
+                font-size: 0.8em;
+                transition: transform 0.3s;
+            }
+            
+            .header[aria-expanded="true"]::after {
+                transform: rotate(-180deg);
+            }
+            
+            .content {
+                padding: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out, padding 0.3s ease;
+                background-color: white;
+            }
+            
+            .content[aria-hidden="false"] {
+                padding: 20px;
+                max-height: 500px; /* Adjust based on content */
+            }
+            
+            ::slotted([slot="title"]) {
+                margin: 0;
+                font-weight: bold;
+            }
+        `;
+        
+        // Create header and content containers
+        const header = document.createElement('div');
+        header.className = 'header';
+        header.setAttribute('role', 'button');
+        header.setAttribute('aria-expanded', 'false');
+        header.setAttribute('tabindex', '0');
+        
+        const titleSlot = document.createElement('slot');
+        titleSlot.name = 'title';
+        header.appendChild(titleSlot);
+        
+        const content = document.createElement('div');
+        content.className = 'content';
+        content.setAttribute('aria-hidden', 'true');
+        
+        const contentSlot = document.createElement('slot');
+        contentSlot.name = 'content';
+        content.appendChild(contentSlot);
+        
+        // Toggle function
+        const toggle = () => {
+            const isExpanded = header.getAttribute('aria-expanded') === 'true';
+            header.setAttribute('aria-expanded', !isExpanded);
+            content.setAttribute('aria-hidden', isExpanded);
+        };
+        
+        // Add event listeners
+        header.addEventListener('click', toggle);
+        header.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggle();
+            }
+        });
+        
+        // Add elements to shadow DOM
+        this.shadowRoot.appendChild(style);
+        this.shadowRoot.appendChild(header);
+        this.shadowRoot.appendChild(content);
+    }
+}
+
+customElements.define('collapsible-panel', CollapsiblePanel);</code></pre>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>5. Lifecycle Callbacks</h2>
+        <p>A custom <code>&lt;timer-display&gt;</code> showing a running timer with lifecycle management.</p>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <div id="timerContainer">
+                <timer-display></timer-display>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button id="toggleTimer">Stop</button>
+                <button id="resetTimer">Reset</button>
+                <button id="removeTimer">Remove Timer</button>
+                <button id="addTimer">Add Timer</button>
+            </div>
+        </div>
+        
+        <div class="solution">
+            <h4>Solution Code:</h4>
+            <pre><code>class TimerDisplay extends HTMLElement {
+    constructor() {
+        super();
+        this.seconds = 0;
+        this.timer = null;
+        this.attachShadow({ mode: 'open' });
+        this._render();
+    }
+    
+    connectedCallback() {
+        console.log('Timer added to the DOM');
+        this.start();
+    }
+    
+    disconnectedCallback() {
+        console.log('Timer removed from the DOM');
+        this.stop();
+    }
+    
+    start() {
+        if (this.timer) return; // Already running
+        
+        console.log('Starting timer');
+        this.timer = setInterval(() => {
+            this.seconds++;
+            this._render();
+        }, 1000);
+    }
+    
+    stop() {
+        if (this.timer) {
+            console.log('Stopping timer');
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+    }
+    
+    reset() {
+        this.seconds = 0;
+        this._render();
+    }
+    
+    _formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    _render() {
+        this.shadowRoot.innerHTML = `
+            <style>
+                .timer {
+                    font-family: 'Courier New', monospace;
+                    font-size: 2.5em;
+                    font-weight: bold;
+                    color: #333;
+                    text-align: center;
+                    padding: 20px;
+                    background-color: #f9f9f9;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    display: inline-block;
+                    min-width: 150px;
+                }
+            </style>
+            <div class="timer">${this._formatTime(this.seconds)}</div>
+        `;
+    }
+}
+
+customElements.define('timer-display', TimerDisplay);</code></pre>
+        </div>
+    </div>
+
+    <script>
+        // Helper code for the solution
+        document.addEventListener('DOMContentLoaded', () => {
+            // Update greeting button
+            document.getElementById('updateGreeting').addEventListener('click', () => {
+                const greeting = document.querySelector('greeting-message');
+                if (greeting) {
+                    greeting.setAttribute('name', 'Alice');
+                }
+            });
+            
+            // Change user button
+            const users = [
+                { name: 'John Doe', email: 'john@example.com', avatar: 'https://i.pravatar.cc/100?img=1' },
+                { name: 'Jane Smith', email: 'jane@example.com', avatar: 'https://i.pravatar.cc/100?img=2' },
+                { name: 'Bob Johnson', email: 'bob@example.com', avatar: 'https://i.pravatar.cc/100?img=3' }
+            ];
+            let currentUser = 0;
+            
+            document.getElementById('changeUser')?.addEventListener('click', () => {
+                currentUser = (currentUser + 1) % users.length;
+                const userCard = document.querySelector('user-card');
+                if (userCard) {
+                    const user = users[currentUser];
+                    userCard.setAttribute('name', user.name);
+                    userCard.setAttribute('email', user.email);
+                    userCard.setAttribute('avatar', user.avatar);
+                }
+            });
+            
+            // Timer controls
+            let timerElement = document.querySelector('timer-display');
+            const toggleBtn = document.getElementById('toggleTimer');
+            const resetBtn = document.getElementById('resetTimer');
+            const removeBtn = document.getElementById('removeTimer');
+            const addBtn = document.getElementById('addTimer');
+            const timerContainer = document.getElementById('timerContainer');
+            
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    if (!timerElement) return;
+                    
+                    if (timerElement.timer) {
+                        timerElement.stop();
+                        toggleBtn.textContent = 'Start';
+                    } else {
+                        timerElement.start();
+                        toggleBtn.textContent = 'Stop';
+                    }
+                });
+            }
+            
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    if (!timerElement) return;
+                    timerElement.reset();
+                    if (!timerElement.timer) {
+                        timerElement.start();
+                        toggleBtn.textContent = 'Stop';
+                    }
+                });
+            }
+            
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => {
+                    if (timerElement && timerElement.parentNode) {
+                        timerElement.parentNode.removeChild(timerElement);
+                        timerElement = null;
+                    }
+                });
+            }
+            
+            if (addBtn && timerContainer) {
+                addBtn.addEventListener('click', () => {
+                    if (!timerElement) {
+                        timerElement = document.createElement('timer-display');
+                        timerContainer.insertBefore(timerElement, timerContainer.firstChild);
+                        toggleBtn.textContent = 'Stop';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

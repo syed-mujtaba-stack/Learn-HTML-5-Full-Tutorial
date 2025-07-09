@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 12: Web Components - Exercise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .component-preview {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+            background-color: white;
+        }
+        .hint {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Components - Exercise</h1>
+    
+    <div class="container">
+        <h2>1. Custom Element</h2>
+        <p>Create a custom element <code>&lt;greeting-message&gt;</code> that displays a greeting.</p>
+        
+        <div class="hint">
+            <strong>Hint:</strong> Use the <code>customElements.define()</code> method to define a new custom element.
+            The element should accept a <code>name</code> attribute and display "Hello, [name]!"
+        </div>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <!-- TODO: Add your custom element here -->
+            <greeting-message name="World"></greeting-message>
+        </div>
+        
+        <button id="updateGreeting">Change Name to "Alice"</button>
+    </div>
+    
+    <div class="container">
+        <h2>2. Shadow DOM</h2>
+        <p>Create a custom element <code>&lt;fancy-button&gt;</code> that uses Shadow DOM to encapsulate its styles.</p>
+        
+        <div class="hint">
+            <strong>Hint:</strong> Use <code>this.attachShadow({ mode: 'open' })</code> to create a shadow root.
+            The button should have a custom style that doesn't affect other buttons on the page.
+        </div>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <!-- TODO: Add your custom button here -->
+            <fancy-button>Click Me</fancy-button>
+            
+            <p>This is a regular button for comparison:</p>
+            <button>Regular Button</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>3. HTML Templates</h2>
+        <p>Create a custom element <code>&lt;user-card&gt;</code> that uses an HTML template.</p>
+        
+        <div class="hint">
+            <strong>Hint:</strong> Define a template in your HTML with <code>&lt;template&gt;</code> tag and
+            use it in your custom element's constructor with <code>document.importNode()</code>.
+        </div>
+        
+        <!-- TODO: Add your template here -->
+        <template id="user-card-template">
+            <style>
+                /* Your styles here */
+            </style>
+            <div class="user-card">
+                <img src="" alt="User Avatar" class="avatar">
+                <div class="user-info">
+                    <h3 class="name"></h3>
+                    <p class="email"></p>
+                </div>
+            </div>
+        </template>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <!-- TODO: Add your user card here -->
+            <user-card 
+                name="John Doe" 
+                email="john@example.com"
+                avatar="https://i.pravatar.cc/100?img=1">
+            </user-card>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>4. Slots</h2>
+        <p>Create a custom element <code>&lt;collapsible-panel&gt;</code> that uses slots for content.</p>
+        
+        <div class="hint">
+            <strong>Hint:</strong> Use <code>&lt;slot&gt;</code> elements in your shadow DOM to allow users to
+            pass content into your custom element.
+        </div>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <!-- TODO: Add your collapsible panel here -->
+            <collapsible-panel>
+                <span slot="title">Click to toggle</span>
+                <div slot="content">
+                    <p>This is the collapsible content. It can contain any HTML.</p>
+                    <p>It should be hidden by default and shown when the header is clicked.</p>
+                </div>
+            </collapsible-panel>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>5. Lifecycle Callbacks</h2>
+        <p>Create a custom element <code>&lt;timer-display&gt;</code> that shows a running timer.</p>
+        
+        <div class="hint">
+            <strong>Hint:</strong> Use the <code>connectedCallback()</code> to start the timer and
+            <code>disconnectedCallback()</code> to clean it up when the element is removed from the DOM.
+        </div>
+        
+        <div class="component-preview">
+            <h3>Preview:</h3>
+            <!-- TODO: Add your timer display here -->
+            <timer-display></timer-display>
+            
+            <div style="margin-top: 20px;">
+                <button id="toggleTimer">Toggle Timer</button>
+                <button id="resetTimer">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Custom Element
+        // TODO: Create a GreetingMessage class that extends HTMLElement
+        // - It should display "Hello, [name]!" where [name] comes from the 'name' attribute
+        // - It should update when the 'name' attribute changes
+
+        // 2. Shadow DOM
+        // TODO: Create a FancyButton class that extends HTMLElement
+        // - It should use Shadow DOM to encapsulate its styles
+        // - It should have a custom appearance different from regular buttons
+
+        // 3. HTML Templates
+        // TODO: Create a UserCard class that extends HTMLElement
+        // - It should use the template defined in the HTML
+        // - It should accept 'name', 'email', and 'avatar' attributes
+        // - It should update when these attributes change
+
+        // 4. Slots
+        // TODO: Create a CollapsiblePanel class that extends HTMLElement
+        // - It should have a header (using a named slot) that toggles the visibility of the content
+        // - The content should be hidden by default and shown when the header is clicked
+
+        // 5. Lifecycle Callbacks
+        // TODO: Create a TimerDisplay class that extends HTMLElement
+        // - It should display a running timer in the format MM:SS
+        // - It should start automatically when added to the DOM
+        // - It should clean up the interval when removed from the DOM
+        // - It should have methods to start(), stop(), and reset() the timer
+
+        // Register the custom elements
+        // customElements.define('greeting-message', GreetingMessage);
+        // customElements.define('fancy-button', FancyButton);
+        // customElements.define('user-card', UserCard);
+        // customElements.define('collapsible-panel', CollapsiblePanel);
+        // customElements.define('timer-display', TimerDisplay);
+
+        // Helper code for the exercise
+        document.getElementById('updateGreeting').addEventListener('click', () => {
+            const greeting = document.querySelector('greeting-message');
+            if (greeting) {
+                greeting.setAttribute('name', 'Alice');
+            }
+        });
+
+        // Timer controls
+        let timerElement;
+        const toggleBtn = document.getElementById('toggleTimer');
+        const resetBtn = document.getElementById('resetTimer');
+        let isTimerRunning = true;
+
+        toggleBtn?.addEventListener('click', () => {
+            if (!timerElement) {
+                timerElement = document.querySelector('timer-display');
+            }
+            
+            if (timerElement) {
+                if (isTimerRunning) {
+                    timerElement.stop();
+                    toggleBtn.textContent = 'Start';
+                } else {
+                    timerElement.start();
+                    toggleBtn.textContent = 'Stop';
+                }
+                isTimerRunning = !isTimerRunning;
+            }
+        });
+
+        resetBtn?.addEventListener('click', () => {
+            if (!timerElement) {
+                timerElement = document.querySelector('timer-display');
+            }
+            
+            if (timerElement) {
+                timerElement.reset();
+                if (!isTimerRunning) {
+                    timerElement.start();
+                    toggleBtn.textContent = 'Stop';
+                    isTimerRunning = true;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

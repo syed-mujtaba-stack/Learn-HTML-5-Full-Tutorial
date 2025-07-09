@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocation API - Solution</title>
+    <style>
+        /* Previous CSS remains the same */
+    </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Geolocation API Solution</h1>
+        
+        <div class="section">
+            <h2><i class="material-icons">my_location</i> Current Position</h2>
+            <button id="getPosition">Get My Location</button>
+            <div id="positionResult"></div>
+            <div id="map"></div>
+        </div>
+        
+        <div class="section">
+            <h2><i class="material-icons">directions_walk</i> Watch Position</h2>
+            <button id="watchPosition">Start Watching</button>
+            <button id="clearWatch" disabled>Stop Watching</button>
+            <div id="watchResult"></div>
+            <div id="watchMap"></div>
+        </div>
+        
+        <div class="section">
+            <h2><i class="material-icons">tune</i> Position Options</h2>
+            <div class="form-group">
+                <label><input type="checkbox" id="enableHighAccuracy"> High Accuracy</label>
+            </div>
+            <div class="form-group">
+                <label>Timeout (ms): <input type="number" id="timeout" value="10000"></label>
+            </div>
+            <div class="form-group">
+                <label>Max Age (ms): <input type="number" id="maximumAge" value="0"></label>
+            </div>
+            <button id="getPositionWithOptions">Get Position with Options</button>
+            <div id="optionsResult"></div>
+        </div>
+        
+        <div class="section">
+            <h2><i class="material-icons">straighten</i> Distance Calculator</h2>
+            <div class="coordinate-inputs">
+                <div class="coordinate-group">
+                    <h3>Point A</h3>
+                    <div class="form-group">
+                        <label>Lat: <input type="number" id="lat1" step="0.000001"></label>
+                        <label>Lng: <input type="number" id="lng1" step="0.000001"></label>
+                    </div>
+                    <button id="useCurrentPosA">Use My Location</button>
+                </div>
+                <div class="coordinate-group">
+                    <h3>Point B</h3>
+                    <div class="form-group">
+                        <label>Lat: <input type="number" id="lat2" step="0.000001"></label>
+                        <label>Lng: <input type="number" id="lng2" step="0.000001"></label>
+                    </div>
+                    <button id="useCurrentPosB">Use My Location</button>
+                </div>
+            </div>
+            <button id="calculateDistance">Calculate Distance</button>
+            <div id="distanceResult"></div>
+            <div id="distanceMap"></div>
+        </div>
+        
+        <div class="section">
+            <h2><i class="material-icons">map</i> Geocoding</h2>
+            <input type="text" id="address" placeholder="Enter address or coordinates">
+            <button id="geocode">Find Location</button>
+            <button id="getCurrentLocation">Use My Location</button>
+            <div id="geocodeResult"></div>
+            <div id="geocodeMap"></div>
+        </div>
+    </div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+    <script>
+        // Global variables
+        let watchId = null;
+        let map, watchMap, distanceMap, geocodeMap;
+        let currentPositionMarker, watchPositionMarker;
+        let geocoder;
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!navigator.geolocation) {
+                showError('positionResult', 'Geolocation is not supported by your browser');
+                return;
+            }
+            
+            initMaps();
+            setupEventListeners();
+        });
+        
+        function initMaps() {
+            const defaultCenter = { lat: 0, lng: 0 };
+            const mapOptions = { zoom: 2, center: defaultCenter };
+            
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+            watchMap = new google.maps.Map(document.getElementById('watchMap'), mapOptions);
+            distanceMap = new google.maps.Map(document.getElementById('distanceMap'), mapOptions);
+            geocodeMap = new google.maps.Map(document.getElementById('geocodeMap'), mapOptions);
+            
+            // Initialize markers
+            currentPositionMarker = createMarker(map, 'Current Position');
+            watchPositionMarker = createMarker(watchMap, 'Watched Position');
+            
+            // Initialize geocoder
+            geocoder = new google.maps.Geocoder();
+        }
+        
+        function createMarker(map, title) {
+            return new google.maps.Marker({ map, title, animation: google.maps.Animation.DROP });
+        }
+        
+        function setupEventListeners() {
+            // Position buttons
+            document.getElementById('getPosition').addEventListener('click', getCurrentPosition);
+            document.getElementById('watchPosition').addEventListener('click', startWatchingPosition);
+            document.getElementById('clearWatch').addEventListener('click', stopWatchingPosition);
+            document.getElementById('getPositionWithOptions').addEventListener('click', getPositionWithOptions);
+            
+            // Distance calculator
+            document.getElementById('useCurrentPosA').addEventListener('click', () => useCurrentPosition('A'));
+            document.getElementById('useCurrentPosB').addEventListener('click', () => useCurrentPosition('B'));
+            document.getElementById('calculateDistance').addEventListener('click', calculateDistance);
+            
+            // Geocoding
+            document.getElementById('geocode').addEventListener('click', geocodeAddress);
+            document.getElementById('getCurrentLocation').addEventListener('click', geocodeCurrentLocation);
+            document.getElementById('address').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') geocodeAddress();
+            });
+        }
+        
+        // Position functions
+        function getCurrentPosition() {
+            showMessage('positionResult', 'Getting your location...');
+            navigator.geolocation.getCurrentPosition(
+                position => showPosition(position, 'positionResult', 'current'),
+                error => handleGeolocationError(error, 'positionResult')
+            );
+        }
+        
+        function startWatchingPosition() {
+            showMessage('watchResult', 'Watching your position...');
+            const watchBtn = document.getElementById('watchPosition');
+            const clearBtn = document.getElementById('clearWatch');
+            
+            watchBtn.disabled = true;
+            clearBtn.disabled = false;
+            
+            watchId = navigator.geolocation.watchPosition(
+                position => showPosition(position, 'watchResult', 'watch'),
+                error => handleGeolocationError(error, 'watchResult'),
+                { enableHighAccuracy: true }
+            );
+        }
+        
+        function stopWatchingPosition() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                document.getElementById('watchPosition').disabled = false;
+                document.getElementById('clearWatch').disabled = true;
+                showMessage('watchResult', 'Stopped watching position.');
+            }
+        }
+        
+        function getPositionWithOptions() {
+            const options = {
+                enableHighAccuracy: document.getElementById('enableHighAccuracy').checked,
+                timeout: parseInt(document.getElementById('timeout').value) || 10000,
+                maximumAge: parseInt(document.getElementById('maximumAge').value) || 0
+            };
+            
+            showMessage('optionsResult', `Getting position with options: ${JSON.stringify(options)}`);
+            
+            navigator.geolocation.getCurrentPosition(
+                position => showPosition(position, 'optionsResult', 'options'),
+                error => handleGeolocationError(error, 'optionsResult'),
+                options
+            );
+        }
+        
+        function showPosition(position, elementId, type) {
+            const { latitude, longitude, accuracy } = position.coords;
+            const positionInfo = `
+                <div class="success">
+                    <strong>Location found!</strong><br>
+                    Lat: ${latitude.toFixed(6)}<br>
+                    Lng: ${longitude.toFixed(6)}<br>
+                    Accuracy: ${Math.round(accuracy)} meters
+                </div>
+            `;
+            
+            document.getElementById(elementId).innerHTML = positionInfo;
+            
+            // Update the appropriate map
+            if (type === 'current') {
+                updateMap(map, currentPositionMarker, latitude, longitude, 'Current Location');
+            } else if (type === 'watch') {
+                updateMap(watchMap, watchPositionMarker, latitude, longitude, 'Watched Location');
+            }
+            
+            // Update coordinates if used from distance calculator
+            if (type === 'distanceA' || type === 'distanceB') {
+                const point = type.replace('distance', '');
+                document.getElementById(`lat${point}`).value = latitude.toFixed(6);
+                document.getElementById(`lng${point}`).value = longitude.toFixed(6);
+            }
+        }
+        
+        function updateMap(mapInstance, marker, lat, lng, title) {
+            const position = { lat, lng };
+            marker.setPosition(position);
+            marker.setTitle(title);
+            mapInstance.setCenter(position);
+            mapInstance.setZoom(15);
+            
+            // Add accuracy circle
+            if (mapInstance.circle) mapInstance.circle.setMap(null);
+            
+            mapInstance.circle = new google.maps.Circle({
+                strokeColor: '#4285F4',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#4285F4',
+                fillOpacity: 0.15,
+                map: mapInstance,
+                center: position,
+                radius: 100 // meters
+            });
+        }
+        
+        // Distance calculator functions
+        function useCurrentPosition(point) {
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    showPosition(position, 'distanceResult', `distance${point}`);
+                },
+                error => handleGeolocationError(error, 'distanceResult')
+            );
+        }
+        
+        function calculateDistance() {
+            const lat1 = parseFloat(document.getElementById('lat1').value);
+            const lng1 = parseFloat(document.getElementById('lng1').value);
+            const lat2 = parseFloat(document.getElementById('lat2').value);
+            const lng2 = parseFloat(document.getElementById('lng2').value);
+            
+            if (isNaN(lat1) || isNaN(lng1) || isNaN(lat2) || isNaN(lng2)) {
+                showError('distanceResult', 'Please enter valid coordinates for both points.');
+                return;
+            }
+            
+            const distanceKm = calculateHaversineDistance(lat1, lng1, lat2, lng2);
+            const distanceMi = distanceKm * 0.621371;
+            
+            document.getElementById('distanceResult').innerHTML = `
+                <div class="success">
+                    <strong>Distance:</strong> ${distanceKm.toFixed(2)} km (${distanceMi.toFixed(2)} miles)
+                </div>
+            `;
+            
+            // Show route on map
+            showRouteOnMap(lat1, lng1, lat2, lng2);
+        }
+        
+        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+        
+        function showRouteOnMap(lat1, lng1, lat2, lng2) {
+            const directionsService = new google.maps.DirectionsService();
+            const directionsRenderer = new google.maps.DirectionsRenderer();
+            
+            directionsRenderer.setMap(distanceMap);
+            
+            directionsService.route(
+                {
+                    origin: { lat: lat1, lng: lng1 },
+                    destination: { lat: lat2, lng: lng2 },
+                    travelMode: 'DRIVING'
+                },
+                (response, status) => {
+                    if (status === 'OK') {
+                        directionsRenderer.setDirections(response);
+                        
+                        // Add markers for start and end points
+                        new google.maps.Marker({
+                            position: { lat: lat1, lng: lng1 },
+                            map: distanceMap,
+                            title: 'Point A'
+                        });
+                        
+                        new google.maps.Marker({
+                            position: { lat: lat2, lng: lng2 },
+                            map: distanceMap,
+                            title: 'Point B'
+                        });
+                    } else {
+                        console.error('Directions request failed: ' + status);
+                    }
+                }
+            );
+        }
+        
+        // Geocoding functions
+        function geocodeAddress() {
+            const address = document.getElementById('address').value;
+            if (!address) {
+                showError('geocodeResult', 'Please enter an address');
+                return;
+            }
+            
+            geocoder.geocode({ address }, (results, status) => {
+                if (status === 'OK') {
+                    const location = results[0].geometry.location;
+                    const lat = location.lat();
+                    const lng = location.lng();
+                    
+                    document.getElementById('geocodeResult').innerHTML = `
+                        <div class="success">
+                            <strong>Address found:</strong> ${results[0].formatted_address}<br>
+                            Latitude: ${lat.toFixed(6)}<br>
+                            Longitude: ${lng.toFixed(6)}
+                        </div>
+                    `;
+                    
+                    // Show on map
+                    geocodeMap.setCenter(location);
+                    geocodeMap.setZoom(15);
+                    new google.maps.Marker({
+                        map: geocodeMap,
+                        position: location,
+                        title: results[0].formatted_address
+                    });
+                    
+                } else {
+                    showError('geocodeResult', 'Geocode was not successful: ' + status);
+                }
+            });
+        }
+        
+        function geocodeCurrentLocation() {
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const { latitude, longitude } = position.coords;
+                    document.getElementById('address').value = `${latitude}, ${longitude}`;
+                    reverseGeocode(latitude, longitude);
+                },
+                error => handleGeolocationError(error, 'geocodeResult')
+            );
+        }
+        
+        function reverseGeocode(lat, lng) {
+            geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        document.getElementById('geocodeResult').innerHTML = `
+                            <div class="success">
+                                <strong>Address:</strong> ${results[0].formatted_address}
+                            </div>
+                        `;
+                        
+                        // Show on map
+                        const location = { lat, lng };
+                        geocodeMap.setCenter(location);
+                        geocodeMap.setZoom(15);
+                        new google.maps.Marker({
+                            map: geocodeMap,
+                            position: location,
+                            title: results[0].formatted_address
+                        });
+                    }
+                } else {
+                    showError('geocodeResult', 'Reverse geocode failed: ' + status);
+                }
+            });
+        }
+        
+        // Utility functions
+        function toRad(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+        
+        function showMessage(elementId, message) {
+            document.getElementById(elementId).innerHTML = `
+                <div class="info-box">${message}</div>
+            `;
+        }
+        
+        function showError(elementId, message) {
+            document.getElementById(elementId).innerHTML = `
+                <div class="error">${message}</div>
+            `;
+        }
+        
+        function handleGeolocationError(error, elementId) {
+            let message = '';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'User denied the request for geolocation.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Location information is unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    message = 'The request to get user location timed out.';
+                    break;
+                case error.UNKNOWN_ERROR:
+                    message = 'An unknown error occurred.';
+                    break;
+            }
+            showError(elementId, `Error: ${message} (Code: ${error.code})`);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 14: Drag & Drop API + File API - Solution</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    .dropzone { border: 2px dashed #007bff; border-radius: 8px; padding: 40px; text-align: center; color: #007bff; background: #fff; margin-bottom: 10px; transition: background 0.2s; }
+    .dropzone.dragover { background: #e3f2fd; }
+    .file-list { margin-top: 10px; }
+    .draggable { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 10px; margin: 5px; cursor: grab; display: inline-block; }
+    .drag-container { display: flex; gap: 20px; }
+    .drag-box { flex: 1; min-height: 100px; border: 2px solid #ddd; border-radius: 8px; padding: 10px; background: #fafafa; min-width: 120px; }
+    .drag-box.dragover { background: #e3f2fd; border-color: #007bff; }
+    .hint { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin: 10px 0; border-radius: 4px; }
+    img.preview { max-width: 120px; margin: 10px 0; border-radius: 4px; }
+    pre { background: #f8f9fa; padding: 8px; border-radius: 3px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Drag & Drop API + File API - Solution</h1>
+
+  <div class="container">
+    <h2>1. Drag & Drop File Upload</h2>
+    <div class="dropzone" id="dropzone">Drop files here or click to select</div>
+    <input type="file" id="fileInput" multiple style="display:none;">
+    <div class="file-list" id="fileList"></div>
+  </div>
+
+  <div class="container">
+    <h2>2. Drag Elements Between Containers</h2>
+    <div class="drag-container">
+      <div class="drag-box" id="boxA">
+        <div class="draggable" draggable="true" id="item1">Item 1</div>
+        <div class="draggable" draggable="true" id="item2">Item 2</div>
+      </div>
+      <div class="drag-box" id="boxB">
+        <div class="draggable" draggable="true" id="item3">Item 3</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // File Upload Drag & Drop
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', e => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', e => {
+      handleFiles(fileInput.files);
+    });
+
+    function handleFiles(files) {
+      fileList.innerHTML = '';
+      Array.from(files).forEach(file => {
+        const div = document.createElement('div');
+        div.innerHTML = `<strong>${file.name}</strong> (${file.type || 'n/a'}, ${file.size} bytes)`;
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.className = 'preview';
+          const reader = new FileReader();
+          reader.onload = e => img.src = e.target.result;
+          reader.readAsDataURL(file);
+          div.appendChild(img);
+        } else if (file.type.startsWith('text/')) {
+          const pre = document.createElement('pre');
+          const reader = new FileReader();
+          reader.onload = e => {
+            pre.textContent = e.target.result.split('\n').slice(0, 5).join('\n');
+          };
+          reader.readAsText(file);
+          div.appendChild(pre);
+        }
+        fileList.appendChild(div);
+      });
+    }
+
+    // Drag Elements Between Containers
+    let dragged = null;
+    document.querySelectorAll('.draggable').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        dragged = el;
+        setTimeout(() => el.style.display = 'none', 0);
+      });
+      el.addEventListener('dragend', e => {
+        dragged = null;
+        el.style.display = '';
+      });
+    });
+    document.querySelectorAll('.drag-box').forEach(box => {
+      box.addEventListener('dragover', e => {
+        e.preventDefault();
+        box.classList.add('dragover');
+      });
+      box.addEventListener('dragleave', e => {
+        box.classList.remove('dragover');
+      });
+      box.addEventListener('drop', e => {
+        e.preventDefault();
+        box.classList.remove('dragover');
+        if (dragged) box.appendChild(dragged);
+      });
+    });
+  </script>
+</body>
+</html>
